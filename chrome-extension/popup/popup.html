@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume Builder</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Login Form (shown when not authenticated) -->
+    <div id="login-view" class="view">
+      <div class="header">
+        <div class="logo">✦</div>
+        <h1>AI Resume Builder</h1>
+      </div>
+      <form id="login-form">
+        <input type="email" id="ext-email" placeholder="Email" required />
+        <input type="password" id="ext-password" placeholder="Password" required />
+        <input type="text" id="ext-resume-id" placeholder="Resume ID" required />
+        <button type="submit" id="ext-login-btn">Sign In</button>
+        <p id="login-error" class="error"></p>
+      </form>
+    </div>
+
+    <!-- Dashboard (shown when authenticated) -->
+    <div id="dashboard-view" class="view hidden">
+      <div class="header">
+        <div class="logo">✦</div>
+        <h1>ATS Dashboard</h1>
+        <button id="ext-logout-btn" class="logout-btn">↗</button>
+      </div>
+
+      <!-- ATS Score -->
+      <div id="score-section" class="section">
+        <div class="score-circle" id="score-circle">
+          <svg viewBox="0 0 120 120" class="score-svg">
+            <circle cx="60" cy="60" r="54" class="score-bg" />
+            <circle cx="60" cy="60" r="54" class="score-ring" id="score-ring" />
+          </svg>
+          <div class="score-value" id="score-value">—</div>
+        </div>
+        <p class="score-label">ATS Score</p>
+      </div>
+
+      <!-- Matched Skills -->
+      <div id="matched-section" class="section">
+        <h3 class="section-title matched-title">✓ Matched Skills</h3>
+        <div id="matched-chips" class="chips"></div>
+      </div>
+
+      <!-- Missing Skills -->
+      <div id="missing-section" class="section">
+        <h3 class="section-title missing-title">✗ Missing Skills</h3>
+        <div id="missing-chips" class="chips"></div>
+      </div>
+
+      <!-- Status -->
+      <div id="status-bar" class="status-bar">
+        <span id="status-text">Open a LinkedIn job page to analyze</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

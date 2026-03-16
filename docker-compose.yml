@@ -1,0 +1,37 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: ai-resume-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ai_resume
+    networks:
+      - ai-resume-net
+
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: ai-resume-python
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./python-service/.env
+    volumes:
+      - ./server/uploads:/app/uploads
+    depends_on:
+      - mongodb
+    networks:
+      - ai-resume-net
+
+volumes:
+  mongo_data:
+
+networks:
+  ai-resume-net:
+    driver: bridge
