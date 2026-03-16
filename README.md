@@ -20,7 +20,7 @@ ai-resume-builder/
 | Frontend | React 18, Vite, TailwindCSS, Radix UI, Lucide Icons |
 | Backend | Node.js 20, Express 5, Mongoose, JWT Auth |
 | Database | MongoDB Atlas |
-| AI / LLM | Google Gemini Flash (resume parsing), Groq LLaMA 3 70B (skill extraction) |
+| AI / LLM | Mistral Large (resume parsing), Groq LLaMA 3 70B (skill extraction) |
 | Embeddings | sentence-transformers (all-MiniLM-L6-v2) |
 | File Parse | pdfplumber + python-docx (Python), pdf-parse + mammoth (Node) |
 | Export | docxtemplater + PizZip (DOCX), Puppeteer (PDF) |
@@ -32,7 +32,7 @@ ai-resume-builder/
 - **Node.js** 20+
 - **Python** 3.11+
 - **MongoDB** (local or Atlas)
-- **Google Gemini API Key** — [Get one here](https://aistudio.google.com/apikey)
+- **Mistral AI API Key** — [Get one here](https://console.mistral.ai/api-keys/)
 - **Groq API Key** — [Get one here](https://console.groq.com/keys)
 
 ## Setup Instructions
@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY and GROQ_API_KEY
+# Edit .env and add your MISTRAL_API_KEY and GROQ_API_KEY
 
 # Start the service
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -115,7 +115,7 @@ CLIENT_URL=http://localhost:5173
 
 ### Python Service (`.env`)
 ```
-GEMINI_API_KEY=your_gemini_api_key
+MISTRAL_API_KEY=your_mistral_api_key
 GROQ_API_KEY=your_groq_api_key
 UPLOADS_DIR=../server/uploads
 ```
