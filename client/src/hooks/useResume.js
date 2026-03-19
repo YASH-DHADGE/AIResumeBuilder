@@ -36,6 +36,12 @@ export default function useResume(resumeId) {
     return () => { cancelled = true; };
   }, [resumeId]);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   // Debounced autosave
   const autoSave = useCallback(
     (updatedSections) => {
@@ -46,7 +52,6 @@ export default function useResume(resumeId) {
         try {
           const { data } = await updateSections(resumeId, updatedSections);
           setResume(data.data);
-          toast.success('Saved', { duration: 1500, id: 'autosave' });
         } catch (err) {
           toast.error('Failed to save changes');
         } finally {
@@ -56,6 +61,21 @@ export default function useResume(resumeId) {
     },
     [resumeId]
   );
+
+  // Manual save
+  const saveNow = useCallback(async (currentSections) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSaving(true);
+    try {
+      const { data } = await updateSections(resumeId, currentSections);
+      setResume(data.data);
+      toast.success('Saved successfully', { id: 'manual-save' });
+    } catch (err) {
+      toast.error('Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  }, [resumeId]);
 
   // Update a specific section
   const updateSection = useCallback(
@@ -104,6 +124,7 @@ export default function useResume(resumeId) {
     analyzing,
     updateSection,
     runAnalysis,
+    saveNow,
     setResume,
   };
 }

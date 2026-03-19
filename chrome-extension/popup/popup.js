@@ -1,6 +1,6 @@
 /**
  * Popup Script — AI Resume Builder Chrome Extension
- * Handles login, displays ATS analysis results, and allows skill addition.
+ * Handles login, ATS analysis rendering, and one-click skill sync.
  */
 
 const loginView = document.getElementById('login-view');
@@ -13,52 +13,98 @@ const scoreValue = document.getElementById('score-value');
 const scoreRing = document.getElementById('score-ring');
 const matchedChips = document.getElementById('matched-chips');
 const missingChips = document.getElementById('missing-chips');
+const userSkillsChips = document.getElementById('user-skills-chips');
+const skillsCountBadge = document.getElementById('skills-count-badge');
+const statusBar = document.getElementById('status-bar');
 const statusText = document.getElementById('status-text');
+const analyzeBtn = document.getElementById('ext-analyze-btn');
+const loginBtn = document.getElementById('ext-login-btn');
 
 const CIRCUMFERENCE = 2 * Math.PI * 54;
+const STATUS_TONES = ['status-success', 'status-error', 'status-warning'];
+const ANALYZE_BUTTON_TEXT = analyzeBtn
+  ? analyzeBtn.innerHTML
+  : '<span class="icon">✦</span>Analyze job on this page';
 
-// ─── Initialize ───
-document.addEventListener('DOMContentLoaded', async () => {
+initialize();
+
+function initialize() {
+  resetAnalysisView();
+
   chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (response) => {
     if (response && response.isLoggedIn) {
       showDashboard();
+      loadUserSkills();
       loadAnalysis();
     } else {
       showLogin();
+      setStatus('Sign in to analyze jobs and sync skills.', 'warning');
     }
   });
-});
 
-// ─── Login ───
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLoginSubmit);
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
+
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', analyzeActiveTab);
+  }
+
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.lastAnalysis && changes.lastAnalysis.newValue) {
+      renderAnalysis(changes.lastAnalysis.newValue);
+    }
+
+    if (changes.userSkills && changes.userSkills.newValue) {
+      renderUserSkills(changes.userSkills.newValue);
+    }
+  });
+}
+
+function handleLoginSubmit(event) {
+  event.preventDefault();
   loginError.textContent = '';
 
-  const email = document.getElementById('ext-email').value;
-  const password = document.getElementById('ext-password').value;
-  const resumeId = document.getElementById('ext-resume-id').value;
+  const emailInput = document.getElementById('ext-email');
+  const passwordInput = document.getElementById('ext-password');
+  const email = emailInput ? emailInput.value.trim() : '';
+  const password = passwordInput ? passwordInput.value : '';
 
-  chrome.runtime.sendMessage(
-    { type: 'LOGIN', email, password },
-    async (response) => {
-      if (response && response.error) {
-        loginError.textContent = response.error;
-      } else {
-        await chrome.storage.local.set({ resumeId });
-        showDashboard();
-        statusText.textContent = 'Logged in! Open a LinkedIn job to analyze.';
-      }
+  if (!email || !password) {
+    loginError.textContent = 'Email and password are required.';
+    setStatus('Email and password are required.', 'error');
+    return;
+  }
+
+  setButtonLoading(loginBtn, true, 'Signing in...');
+
+  chrome.runtime.sendMessage({ type: 'LOGIN', email, password }, (response) => {
+    setButtonLoading(loginBtn, false, 'Sign In');
+
+    if (response && response.error) {
+      loginError.textContent = response.error;
+      setStatus('Login failed. Check your credentials.', 'error');
+      return;
     }
-  );
-});
 
-// ─── Logout ───
-logoutBtn.addEventListener('click', async () => {
-  await chrome.storage.local.remove(['jwt', 'user', 'resumeId', 'lastAnalysis']);
+    showDashboard();
+    setStatus('Logged in. Open a job page and analyze.', 'success');
+    loadUserSkills();
+    loadAnalysis();
+  });
+}
+
+async function handleLogout() {
+  await chrome.storage.local.remove(['jwt', 'user', 'lastAnalysis', 'userSkills']);
   showLogin();
-});
+  resetAnalysisView();
+  setStatus('Signed out from extension.', 'warning');
+}
 
-// ─── Views ───
 function showLogin() {
   loginView.classList.remove('hidden');
   dashboardView.classList.add('hidden');
@@ -69,73 +115,176 @@ function showDashboard() {
   dashboardView.classList.remove('hidden');
 }
 
-// ─── Load Analysis Results ───
+function analyzeActiveTab() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs || !tabs[0]) {
+      setStatus('Cannot access active tab.', 'error');
+      return;
+    }
+
+    setAnalyzeLoading(true);
+
+    chrome.tabs.sendMessage(tabs[0].id, { type: 'EXTRACT_JD' }, (jd) => {
+      if (chrome.runtime.lastError || !jd || !jd.trim()) {
+        const message = chrome.runtime.lastError
+          ? chrome.runtime.lastError.message
+          : 'Could not extract job description from this page.';
+        setStatus(message, 'error');
+        setAnalyzeLoading(false);
+        return;
+      }
+
+      setStatus('Analyzing job requirements...', 'warning');
+      chrome.runtime.sendMessage({ type: 'JOB_DESC', payload: jd }, (response) => {
+        setAnalyzeLoading(false);
+
+        if (response && response.error) {
+          setStatus(`Error: ${response.error}`, 'error');
+          return;
+        }
+
+        setStatus('Analysis complete.', 'success');
+      });
+    });
+  });
+}
+
+function loadUserSkills() {
+  chrome.runtime.sendMessage({ type: 'GET_USER_SKILLS' }, (response) => {
+    const skills = (response && response.skills) || [];
+    renderUserSkills(skills);
+  });
+}
+
+function renderUserSkills(skills) {
+  userSkillsChips.innerHTML = '';
+  skillsCountBadge.textContent = String(skills.length);
+
+  if (!skills.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-state';
+    empty.textContent = 'No profile skills yet.';
+    userSkillsChips.appendChild(empty);
+    return;
+  }
+
+  skills.forEach((skill) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip chip-user';
+    chip.textContent = skill;
+    userSkillsChips.appendChild(chip);
+  });
+}
+
 async function loadAnalysis() {
   const { lastAnalysis } = await chrome.storage.local.get(['lastAnalysis']);
   if (!lastAnalysis) {
-    statusText.textContent = 'No analysis yet. Visit a LinkedIn job page.';
+    resetAnalysisView();
+    setStatus('No analysis yet. Visit a job page and run analysis.', 'warning');
     return;
   }
+
   renderAnalysis(lastAnalysis);
 }
 
-function renderAnalysis(data) {
-  const score = data.atsScore || 0;
+function resetAnalysisView() {
+  scoreValue.textContent = '—';
+  scoreRing.style.strokeDashoffset = String(CIRCUMFERENCE);
 
-  // Animate score
+  matchedChips.innerHTML = '';
+  missingChips.innerHTML = '';
+
+  const matchedEmpty = document.createElement('p');
+  matchedEmpty.className = 'empty-state';
+  matchedEmpty.textContent = 'Matched skills will appear after analysis.';
+
+  const missingEmpty = document.createElement('p');
+  missingEmpty.className = 'empty-state';
+  missingEmpty.textContent = 'Missing skills will appear after analysis.';
+
+  matchedChips.appendChild(matchedEmpty);
+  missingChips.appendChild(missingEmpty);
+}
+
+function renderAnalysis(data) {
+  const score = Math.max(0, Math.min(100, data.atsScore || 0));
+  const matched = Array.isArray(data.matchedSkills) ? data.matchedSkills : [];
+  const missing = Array.isArray(data.missingSkills) ? data.missingSkills : [];
+
   animateScore(score);
 
-  // Matched chips
   matchedChips.innerHTML = '';
-  (data.matchedSkills || []).forEach((skill) => {
-    const chip = document.createElement('span');
-    chip.className = 'chip chip-matched';
-    chip.textContent = skill;
-    matchedChips.appendChild(chip);
-  });
+  renderReadonlySkillChips(
+    matchedChips,
+    matched,
+    'chip chip-matched',
+    'No matched skills in this job yet.'
+  );
 
-  // Missing chips (clickable to add)
   missingChips.innerHTML = '';
-  (data.missingSkills || []).forEach((skill) => {
-    const chip = document.createElement('span');
-    chip.className = 'chip chip-missing';
-    chip.textContent = '+ ' + skill;
-    chip.title = 'Click to add this skill to your resume';
-    chip.addEventListener('click', () => addMissingSkill(skill, chip));
-    missingChips.appendChild(chip);
-  });
+  if (!missing.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-state';
+    empty.textContent = 'No missing skills detected.';
+    missingChips.appendChild(empty);
+  } else {
+    missing.forEach((skill) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip chip-missing';
+      chip.textContent = `+ ${skill}`;
+      chip.title = 'Click to add this skill to your resume and profile';
+      chip.addEventListener('click', () => addMissingSkill(skill, chip));
+      missingChips.appendChild(chip);
+    });
+  }
 
-  const total = (data.matchedSkills?.length || 0) + (data.missingSkills?.length || 0);
-  statusText.textContent = `Matched ${data.matchedSkills?.length || 0}/${total} skills`;
+  const total = matched.length + missing.length;
+  setStatus(`Matched ${matched.length}/${total || 0} skills`, 'success');
+}
+
+function renderReadonlySkillChips(container, skills, chipClass, emptyMessage) {
+  if (!skills.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-state';
+    empty.textContent = emptyMessage;
+    container.appendChild(empty);
+    return;
+  }
+
+  skills.forEach((skill) => {
+    const chip = document.createElement('span');
+    chip.className = chipClass;
+    chip.textContent = skill;
+    container.appendChild(chip);
+  });
 }
 
 function animateScore(target) {
-  let current = 0;
-  const duration = 1500;
+  const finalTarget = Math.max(0, Math.min(100, target));
+  const duration = 1200;
   const startTime = performance.now();
 
   function update(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
-    current = Math.round(target * eased);
+    const current = Math.round(finalTarget * eased);
 
-    scoreValue.textContent = current;
+    scoreValue.textContent = String(current);
 
-    // Update ring
     const offset = CIRCUMFERENCE - (CIRCUMFERENCE * current) / 100;
-    scoreRing.style.strokeDashoffset = offset;
+    scoreRing.style.strokeDashoffset = String(offset);
 
-    // Color based on score
     if (current >= 75) {
-      scoreRing.style.stroke = '#10b981';
-      scoreValue.style.color = '#10b981';
+      scoreRing.style.stroke = '#34d399';
+      scoreValue.style.color = '#34d399';
     } else if (current >= 50) {
-      scoreRing.style.stroke = '#f59e0b';
-      scoreValue.style.color = '#f59e0b';
+      scoreRing.style.stroke = '#fbbf24';
+      scoreValue.style.color = '#fbbf24';
     } else {
-      scoreRing.style.stroke = '#ef4444';
-      scoreValue.style.color = '#ef4444';
+      scoreRing.style.stroke = '#f87171';
+      scoreValue.style.color = '#f87171';
     }
 
     if (progress < 1) {
@@ -146,32 +295,48 @@ function animateScore(target) {
   requestAnimationFrame(update);
 }
 
-async function addMissingSkill(skill, chipEl) {
-  const { resumeId } = await chrome.storage.local.get(['resumeId']);
-  if (!resumeId) return;
+function addMissingSkill(skill, chipEl) {
+  chipEl.classList.add('is-loading');
+  chipEl.disabled = true;
+  chipEl.textContent = `... ${skill}`;
 
-  chipEl.style.opacity = '0.5';
-  chipEl.style.pointerEvents = 'none';
-
-  chrome.runtime.sendMessage(
-    { type: 'ADD_SKILL', skill, resumeId },
-    (response) => {
-      if (response && response.error) {
-        chipEl.style.opacity = '1';
-        chipEl.style.pointerEvents = 'auto';
-        statusText.textContent = 'Error: ' + response.error;
-      } else {
-        chipEl.className = 'chip chip-matched';
-        chipEl.textContent = skill;
-        statusText.textContent = `Added "${skill}" to your resume!`;
-      }
+  chrome.runtime.sendMessage({ type: 'ADD_SKILL', skill }, (response) => {
+    if (response && response.error) {
+      chipEl.classList.remove('is-loading');
+      chipEl.disabled = false;
+      chipEl.textContent = `+ ${skill}`;
+      setStatus(`Error: ${response.error}`, 'error');
+      return;
     }
-  );
+
+    chipEl.className = 'chip chip-matched is-added';
+    chipEl.textContent = `✓ ${skill}`;
+    chipEl.disabled = true;
+
+    setStatus(`Added "${skill}" to your profile.`, 'success');
+    loadUserSkills();
+  });
 }
 
-// ─── Listen for new analysis results ───
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.lastAnalysis && changes.lastAnalysis.newValue) {
-    renderAnalysis(changes.lastAnalysis.newValue);
+function setStatus(message, tone = 'warning') {
+  statusText.textContent = message;
+  statusBar.classList.remove(...STATUS_TONES);
+  if (tone && tone !== 'info') {
+    statusBar.classList.add(`status-${tone}`);
   }
-});
+}
+
+function setAnalyzeLoading(loading) {
+  if (!analyzeBtn) return;
+  analyzeBtn.disabled = loading;
+  analyzeBtn.innerHTML = loading
+    ? '<span class="icon">...</span>Analyzing...'
+    : ANALYZE_BUTTON_TEXT;
+}
+
+function setButtonLoading(button, loading, loadingLabel) {
+  if (!button) return;
+  if (!button.dataset.defaultText) button.dataset.defaultText = button.textContent;
+  button.disabled = loading;
+  button.textContent = loading ? loadingLabel : button.dataset.defaultText;
+}

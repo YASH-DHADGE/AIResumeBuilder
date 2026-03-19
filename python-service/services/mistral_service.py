@@ -6,7 +6,7 @@ Uses Mistral's structured JSON extraction to parse resume text into JSON.
 import os
 import json
 import re
-from mistralai.client import Mistral
+from mistralai import Mistral
 from dotenv import load_dotenv
 
 load_dotenv()

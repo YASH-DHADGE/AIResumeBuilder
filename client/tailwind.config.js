@@ -35,13 +35,15 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Space Grotesk', 'Manrope', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.4s ease-out',
         'count-up': 'countUp 1.5s ease-out',
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+        'float-slow': 'floatSlow 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -59,6 +61,10 @@ export default {
         pulseGlow: {
           '0%, 100%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.3)' },
           '50%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.6)' },
+        },
+        floatSlow: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
         },
       },
     },

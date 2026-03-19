@@ -46,6 +46,13 @@ export default function ATSScoreCard({
     return { text: 'text-red-400', ring: 'stroke-red-400', bg: 'bg-red-400' };
   };
 
+  const getScoreLabel = (score) => {
+    if (score >= 80) return 'Strong match';
+    if (score >= 65) return 'Good potential';
+    if (score >= 50) return 'Needs tuning';
+    return 'Low match';
+  };
+
   const scoreColor = getScoreColor(animatedScore);
   const circumference = 2 * Math.PI * 54;
   const offset = circumference - (circumference * animatedScore) / 100;
@@ -57,17 +64,19 @@ export default function ATSScoreCard({
 
   return (
     <div className="glass-card overflow-hidden">
-      <div className="p-5 border-b border-dark-700/50">
+      <div className="border-b border-dark-700/60 p-5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary-500/10 border border-primary-500/20 rounded-lg flex items-center justify-center">
-            <Target className="w-5 h-5 text-primary-400" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10">
+            <Target className="h-5 w-5 text-cyan-300" />
           </div>
-          <h3 className="font-semibold text-dark-100">ATS Score</h3>
+          <div>
+            <h3 className="font-semibold text-dark-100">ATS Score</h3>
+            <p className="text-xs text-dark-400">Analyze the role description to score alignment.</p>
+          </div>
         </div>
       </div>
 
       <div className="p-5">
-        {/* Score circle */}
         {atsScore != null && (
           <div className="flex justify-center mb-6">
             <div className="relative w-36 h-36">
@@ -98,7 +107,7 @@ export default function ATSScoreCard({
                 <span className={`text-4xl font-bold ${scoreColor.text}`}>
                   {animatedScore}
                 </span>
-                <span className="text-dark-500 text-xs uppercase tracking-wider">
+                <span className="text-dark-500 text-xs uppercase tracking-[0.16em]">
                   ATS Score
                 </span>
               </div>
@@ -106,51 +115,57 @@ export default function ATSScoreCard({
           </div>
         )}
 
-        {/* Stats */}
         {atsScore != null && (
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-green-400">
-                {matchedSkills?.length || 0}
-              </p>
-              <p className="text-xs text-dark-400">Matched</p>
+          <>
+            <p className={`mb-4 text-center text-sm font-semibold ${scoreColor.text}`}>
+              {getScoreLabel(animatedScore)}
+            </p>
+            <div className="mb-6 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-green-400/20 bg-green-500/10 p-3 text-center">
+                <p className="text-2xl font-bold text-green-300">
+                  {matchedSkills?.length || 0}
+                </p>
+                <p className="text-xs text-dark-400">Matched</p>
+              </div>
+              <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-center">
+                <p className="text-2xl font-bold text-red-300">
+                  {missingSkills?.length || 0}
+                </p>
+                <p className="text-xs text-dark-400">Missing</p>
+              </div>
             </div>
-            <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-red-400">
-                {missingSkills?.length || 0}
-              </p>
-              <p className="text-xs text-dark-400">Missing</p>
-            </div>
-          </div>
+          </>
         )}
 
-        {/* Job description input */}
         <div className="space-y-3">
-          <label className="text-xs font-medium text-dark-400 uppercase tracking-wider">
-            Paste Job Description
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium uppercase tracking-[0.16em] text-dark-400">
+              Job Description
+            </label>
+            <span className="text-xs text-dark-500">{jobDescription.trim().length} chars</span>
+          </div>
           <textarea
             id="job-description-textarea"
-            className="input-field w-full text-sm resize-none"
-            rows={5}
+            className="input-field w-full resize-none text-sm"
+            rows={6}
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
-            placeholder="Paste the job description here to analyze skill match..."
+            placeholder="Paste the full job description here to analyze skill fit..."
           />
           <button
             id="analyze-btn"
             onClick={handleAnalyze}
             disabled={analyzing || !jobDescription.trim()}
-            className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-40"
+            className="btn-primary flex w-full items-center justify-center gap-2 py-3"
           >
             {analyzing ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Analyzing...
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Analyzing match...
               </>
             ) : (
               <>
-                <Search className="w-4 h-4" />
+                <Search className="h-4 w-4" />
                 Analyze Match
               </>
             )}

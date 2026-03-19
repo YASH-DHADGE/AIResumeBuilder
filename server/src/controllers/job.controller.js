@@ -12,10 +12,10 @@ const { extractJobSkills, matchSkills } = require('../services/pythonBridge.serv
 async function analyzeJob(req, res) {
   const { jobDescription, resumeId } = req.body;
 
-  if (!jobDescription || !resumeId) {
+  if (!jobDescription) {
     return res.status(400).json({
       success: false,
-      message: 'jobDescription and resumeId are required',
+      message: 'jobDescription is required',
       data: null,
     });
   }
@@ -33,21 +33,25 @@ async function analyzeJob(req, res) {
     });
   }
 
-  // 2. Fetch resume from DB
-  const resume = await Resume.findOne({
-    _id: resumeId,
-    userId: req.userId,
-  });
+  // 2. Fetch skills to compare against (either from a specific resume or the global User profile)
+  let resumeSkills = [];
+  let resumeDoc = null;
 
-  if (!resume) {
-    return res.status(404).json({
-      success: false,
-      message: 'Resume not found',
-      data: null,
-    });
+  if (resumeId) {
+    resumeDoc = await Resume.findOne({ _id: resumeId, userId: req.userId });
+    if (!resumeDoc) {
+      return res.status(404).json({ success: false, message: 'Resume not found', data: null });
+    }
+    resumeSkills = resumeDoc.sections.skills || [];
+  } else {
+    // Fall back to global user profile skills if no resumeId is provided
+    const User = require('../models/User.model');
+    const userDoc = await User.findById(req.userId);
+    if (!userDoc) {
+      return res.status(404).json({ success: false, message: 'User not found', data: null });
+    }
+    resumeSkills = userDoc.skills || [];
   }
-
-  const resumeSkills = resume.sections.skills || [];
 
   // 3. Match skills via embeddings
   let matchResult;
@@ -62,12 +66,14 @@ async function analyzeJob(req, res) {
     });
   }
 
-  // 4. Update resume in MongoDB
-  resume.atsScore = matchResult.ats_score;
-  resume.matchedSkills = matchResult.matched;
-  resume.missingSkills = matchResult.missing;
-  resume.lastJobDescription = jobDescription;
-  await resume.save();
+  // 4. Update resume in MongoDB (only if resumeId was provided)
+  if (resumeDoc) {
+    resumeDoc.atsScore = matchResult.ats_score;
+    resumeDoc.matchedSkills = matchResult.matched;
+    resumeDoc.missingSkills = matchResult.missing;
+    resumeDoc.lastJobDescription = jobDescription;
+    await resumeDoc.save();
+  }
 
   res.json({
     success: true,

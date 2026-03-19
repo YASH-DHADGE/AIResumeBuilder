@@ -3,6 +3,7 @@
  */
 const path = require('path');
 const Resume = require('../models/Resume.model');
+const User = require('../models/User.model');
 const { parseResumeText } = require('../services/pythonBridge.service');
 const { extractResumeText } = require('../services/resumeParser.service');
 
@@ -56,6 +57,25 @@ async function uploadResume(req, res) {
     filePath,
     sections,
   });
+
+  // Sync initially parsed sections to the User profile
+  const parsedSkills = sections.skills || [];
+  
+  const updateDoc = { $set: {} };
+  if (parsedSkills.length > 0) {
+    updateDoc.$addToSet = { skills: { $each: parsedSkills.filter((s) => s && s.trim()) } };
+  }
+  if (sections.summary) updateDoc.$set.summary = sections.summary;
+  if (sections.experience) updateDoc.$set.experience = sections.experience;
+  if (sections.education) updateDoc.$set.education = sections.education;
+  if (sections.projects) updateDoc.$set.projects = sections.projects;
+  if (sections.personalInfo) updateDoc.$set.personalInfo = sections.personalInfo;
+
+  if (Object.keys(updateDoc.$set).length === 0) delete updateDoc.$set;
+
+  if (Object.keys(updateDoc).length > 0) {
+    await User.findByIdAndUpdate(req.userId, updateDoc);
+  }
 
   res.status(201).json({
     success: true,
@@ -118,6 +138,23 @@ async function updateSections(req, res) {
     });
   }
 
+  // Also sync sections to User document globally
+  const updateDoc = { $set: {} };
+  if (sections.skills && sections.skills.length > 0) {
+    updateDoc.$addToSet = { skills: { $each: sections.skills.filter((s) => s && s.trim()) } };
+  }
+  if (sections.summary !== undefined) updateDoc.$set.summary = sections.summary;
+  if (sections.experience !== undefined) updateDoc.$set.experience = sections.experience;
+  if (sections.education !== undefined) updateDoc.$set.education = sections.education;
+  if (sections.projects !== undefined) updateDoc.$set.projects = sections.projects;
+  if (sections.personalInfo !== undefined) updateDoc.$set.personalInfo = sections.personalInfo;
+
+  if (Object.keys(updateDoc.$set).length === 0) delete updateDoc.$set;
+
+  if (Object.keys(updateDoc).length > 0) {
+    await User.findByIdAndUpdate(req.userId, updateDoc);
+  }
+
   res.json({
     success: true,
     message: 'Sections updated successfully',
@@ -160,6 +197,20 @@ async function patchSkills(req, res) {
 
   resume.sections.skills = skills;
   await resume.save();
+
+  // Sync added skills to the User profile (deduplicated at DB level)
+  if (add.length > 0) {
+    await User.findByIdAndUpdate(
+      req.userId,
+      { $addToSet: { skills: { $each: add.filter((s) => s.trim()) } } }
+    );
+  }
+  if (remove.length > 0) {
+    await User.findByIdAndUpdate(
+      req.userId,
+      { $pull: { skills: { $in: remove } } }
+    );
+  }
 
   res.json({
     success: true,

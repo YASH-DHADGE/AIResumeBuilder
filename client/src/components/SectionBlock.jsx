@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 
 const COLOR_MAP = {
   primary: {
@@ -39,45 +39,42 @@ export default function SectionBlock({ title, icon, color = 'primary', children,
   const c = COLOR_MAP[color] || COLOR_MAP.primary;
 
   return (
-    <div className="glass-card overflow-hidden">
-      {/* Header */}
-      <button
-        className="w-full flex items-center justify-between p-5 hover:bg-dark-700/30 transition-colors"
-        onClick={() => setOpen(!open)}
-      >
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 ${c.bg} border ${c.border} rounded-lg flex items-center justify-center`}>
+    <section className="glass-card overflow-hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-dark-700/60 px-4 py-3 sm:px-5">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+        >
+          <span className={`flex h-9 w-9 items-center justify-center rounded-xl border ${c.border} ${c.bg}`}>
             <span className={c.icon}>{icon}</span>
-          </div>
-          <h3 className="font-semibold text-dark-100">{title}</h3>
-        </div>
+          </span>
+          <span className="truncate font-semibold text-dark-100">{title}</span>
+          <ChevronDown
+            className={`ml-auto h-4 w-4 flex-shrink-0 text-dark-500 transition-transform ${
+              open ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
 
-        <div className="flex items-center gap-2">
-          {onAdd && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdd();
-              }}
-              className="w-7 h-7 rounded-lg bg-dark-700 hover:bg-dark-600 flex items-center justify-center text-dark-400 hover:text-dark-200 transition-all"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          )}
-          {open ? (
-            <ChevronUp className="w-5 h-5 text-dark-500" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-dark-500" />
-          )}
-        </div>
-      </button>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-dark-600/70 bg-dark-800/80 text-dark-300 transition-colors hover:border-cyan-300/50 hover:bg-cyan-400/10 hover:text-cyan-200"
+            aria-label={`Add item to ${title}`}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
-      {/* Content */}
       {open && (
-        <div className="px-5 pb-5 space-y-3 animate-fade-in">
+        <div className="space-y-3 p-4 sm:p-5 animate-fade-in">
           {children}
         </div>
       )}
-    </div>
+    </section>
   );
 }

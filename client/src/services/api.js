@@ -34,6 +34,10 @@ api.interceptors.response.use(
 export const registerUser = (data) => api.post('/auth/register', data);
 export const loginUser = (data) => api.post('/auth/login', data);
 
+// ─── User Profile ───
+export const getUserProfile = () => api.get('/user/profile');
+export const putUserProfile = (data) => api.put('/user/profile', data);
+
 // ─── Resume ───
 export const uploadResume = (formData) =>
   api.post('/resume/upload', formData, {

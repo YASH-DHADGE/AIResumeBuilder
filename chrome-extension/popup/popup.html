@@ -7,55 +7,84 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <div id="app">
-    <!-- Login Form (shown when not authenticated) -->
+  <div id="app" class="popup-shell">
     <div id="login-view" class="view">
-      <div class="header">
-        <div class="logo">✦</div>
-        <h1>AI Resume Builder</h1>
-      </div>
-      <form id="login-form">
-        <input type="email" id="ext-email" placeholder="Email" required />
-        <input type="password" id="ext-password" placeholder="Password" required />
-        <input type="text" id="ext-resume-id" placeholder="Resume ID" required />
-        <button type="submit" id="ext-login-btn">Sign In</button>
-        <p id="login-error" class="error"></p>
-      </form>
+      <header class="topbar">
+        <div class="brand-mark">✦</div>
+        <div>
+          <p class="eyebrow">Extension Login</p>
+          <h1>AI Resume Builder</h1>
+        </div>
+      </header>
+
+      <section class="content">
+        <p class="intro-text">
+          Sign in with your app account to analyze job listings and sync missing skills in one click.
+        </p>
+
+        <form id="login-form" class="auth-form">
+          <label class="field-label" for="ext-email">Email</label>
+          <input type="email" id="ext-email" placeholder="you@example.com" required />
+
+          <label class="field-label" for="ext-password">Password</label>
+          <input type="password" id="ext-password" placeholder="Your password" required />
+
+          <button type="submit" id="ext-login-btn" class="primary-btn">Sign In</button>
+          <p id="login-error" class="error"></p>
+        </form>
+      </section>
     </div>
 
-    <!-- Dashboard (shown when authenticated) -->
     <div id="dashboard-view" class="view hidden">
-      <div class="header">
-        <div class="logo">✦</div>
-        <h1>ATS Dashboard</h1>
-        <button id="ext-logout-btn" class="logout-btn">↗</button>
-      </div>
-
-      <!-- ATS Score -->
-      <div id="score-section" class="section">
-        <div class="score-circle" id="score-circle">
-          <svg viewBox="0 0 120 120" class="score-svg">
-            <circle cx="60" cy="60" r="54" class="score-bg" />
-            <circle cx="60" cy="60" r="54" class="score-ring" id="score-ring" />
-          </svg>
-          <div class="score-value" id="score-value">—</div>
+      <header class="topbar">
+        <div class="brand-mark">✦</div>
+        <div class="topbar-copy">
+          <p class="eyebrow">Live Job Analysis</p>
+          <h1>ATS Dashboard</h1>
         </div>
-        <p class="score-label">ATS Score</p>
-      </div>
+        <button id="ext-logout-btn" class="logout-btn" title="Sign out">↗</button>
+      </header>
 
-      <!-- Matched Skills -->
-      <div id="matched-section" class="section">
-        <h3 class="section-title matched-title">✓ Matched Skills</h3>
-        <div id="matched-chips" class="chips"></div>
-      </div>
+      <section class="content">
+        <div id="analyze-action" class="card compact">
+          <button id="ext-analyze-btn" class="primary-btn action-btn" type="button">
+            <span class="icon">✦</span>
+            Analyze job on this page
+          </button>
+        </div>
 
-      <!-- Missing Skills -->
-      <div id="missing-section" class="section">
-        <h3 class="section-title missing-title">✗ Missing Skills</h3>
-        <div id="missing-chips" class="chips"></div>
-      </div>
+        <div id="score-section" class="card score-card">
+          <div class="score-circle" id="score-circle">
+            <svg viewBox="0 0 120 120" class="score-svg">
+              <circle cx="60" cy="60" r="54" class="score-bg" />
+              <circle cx="60" cy="60" r="54" class="score-ring" id="score-ring" />
+            </svg>
+            <div class="score-value" id="score-value">—</div>
+          </div>
+          <p class="score-label">ATS Score</p>
+        </div>
 
-      <!-- Status -->
+        <div id="skills-section" class="card">
+          <details id="user-skills-details" open>
+            <summary class="section-title skills-title">
+              ⚡ Your Profile Skills
+              <span id="skills-count-badge" class="skills-badge">0</span>
+            </summary>
+            <div id="user-skills-chips" class="chips"></div>
+          </details>
+        </div>
+
+        <div id="matched-section" class="card">
+          <h3 class="section-title matched-title">✓ Matched Skills</h3>
+          <div id="matched-chips" class="chips"></div>
+        </div>
+
+        <div id="missing-section" class="card">
+          <h3 class="section-title missing-title">✗ Missing Skills</h3>
+          <div id="missing-chips" class="chips"></div>
+        </div>
+      </section>
+
       <div id="status-bar" class="status-bar">
         <span id="status-text">Open a LinkedIn job page to analyze</span>
       </div>

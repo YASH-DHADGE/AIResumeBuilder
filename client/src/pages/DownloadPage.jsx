@@ -3,9 +3,22 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { exportDocx, exportPdf, exportEmail } from '../services/api';
 import toast from 'react-hot-toast';
 import {
-  FileText, FileDown, Mail, ArrowLeft, Sparkles,
-  Loader2, CheckCircle2, Download,
+  ArrowLeft,
+  CheckCircle2,
+  Download,
+  FileDown,
+  FileText,
+  Loader2,
+  LogOut,
+  Mail,
+  Sparkles,
 } from 'lucide-react';
+import {
+  clearSession,
+  getAuthToken,
+  getStoredUser,
+  requireAuth,
+} from '../utils/auth';
 
 export default function DownloadPage() {
   const { resumeId } = useParams();
@@ -15,30 +28,36 @@ export default function DownloadPage() {
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const token = localStorage.getItem('token');
   useEffect(() => {
-    if (!token) navigate('/login');
-  }, [token, navigate]);
-  
+    requireAuth(navigate);
+  }, [navigate]);
+
+  const token = getAuthToken();
   if (!token) return null;
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getStoredUser() || {};
+
+  const downloadBlob = (data, type, filename) => {
+    const blob = new Blob([data], { type });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleDocx = async () => {
     setLoadingDocx(true);
     try {
       const response = await exportDocx(resumeId);
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Resume.docx';
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(
+        response.data,
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Resume.docx'
+      );
       toast.success('DOCX downloaded!');
-    } catch (err) {
+    } catch {
       toast.error('Failed to generate DOCX');
     } finally {
       setLoadingDocx(false);
@@ -49,15 +68,9 @@ export default function DownloadPage() {
     setLoadingPdf(true);
     try {
       const response = await exportPdf(resumeId);
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Resume.pdf';
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(response.data, 'application/pdf', 'Resume.pdf');
       toast.success('PDF downloaded!');
-    } catch (err) {
+    } catch {
       toast.error('Failed to generate PDF');
     } finally {
       setLoadingPdf(false);
@@ -65,122 +78,140 @@ export default function DownloadPage() {
   };
 
   const handleEmail = async () => {
+    if (!user.email) {
+      toast.error('No email found in your profile');
+      return;
+    }
+
     setLoadingEmail(true);
     try {
       await exportEmail(resumeId, user.email);
       setEmailSent(true);
       toast.success(`Resume sent to ${user.email}`);
-    } catch (err) {
+    } catch {
       toast.error('Failed to send email');
     } finally {
       setLoadingEmail(false);
     }
   };
 
+  const exportActions = [
+    {
+      id: 'download-docx-btn',
+      title: 'Download DOCX',
+      description: 'Editable Word format for custom edits.',
+      icon: FileText,
+      iconColor: 'text-blue-300',
+      hoverClass: 'hover:border-blue-400/45 hover:bg-blue-500/10',
+      loading: loadingDocx,
+      onClick: handleDocx,
+      disabled: false,
+    },
+    {
+      id: 'download-pdf-btn',
+      title: 'Download PDF',
+      description: 'Print-ready layout for direct applications.',
+      icon: FileDown,
+      iconColor: 'text-red-300',
+      hoverClass: 'hover:border-red-400/45 hover:bg-red-500/10',
+      loading: loadingPdf,
+      onClick: handlePdf,
+      disabled: false,
+    },
+    {
+      id: 'email-resume-btn',
+      title: emailSent ? 'Email sent' : 'Email to me',
+      description: emailSent
+        ? `Sent to ${user.email}`
+        : `Send both files to ${user.email || 'your account email'}`,
+      icon: emailSent ? CheckCircle2 : Mail,
+      iconColor: 'text-emerald-300',
+      hoverClass: 'hover:border-emerald-400/45 hover:bg-emerald-500/10',
+      loading: loadingEmail,
+      onClick: handleEmail,
+      disabled: emailSent,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-dark-950 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-dark-800 bg-dark-900/50 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center gap-4">
-          <button
-            id="back-to-editor-btn"
-            onClick={() => navigate(`/editor/${resumeId}`)}
-            className="text-dark-400 hover:text-dark-200 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary-400" />
-            <span className="font-semibold text-dark-100">Export Resume</span>
+    <div className="app-shell flex flex-col">
+      <header className="sticky top-0 z-50 border-b border-dark-700/70 bg-dark-950/80 backdrop-blur-xl">
+        <div className="page-wrap flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              id="back-to-editor-btn"
+              onClick={() => navigate(`/editor/${resumeId}`)}
+              className="btn-ghost flex items-center gap-2 px-3 py-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to editor</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="brand-mark h-9 w-9 rounded-xl">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <span className="font-display text-base font-semibold text-dark-100">Export Resume</span>
+            </div>
           </div>
+
+          <button
+            onClick={() => {
+              clearSession();
+              navigate('/login');
+            }}
+            className="btn-ghost flex items-center gap-2 px-3 py-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </button>
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full animate-fade-in">
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Download className="w-8 h-8 text-white" />
+      <main className="page-wrap flex flex-1 items-center py-8">
+        <div className="w-full animate-fade-in">
+          <section className="panel-card-strong p-6 sm:p-8">
+            <div className="mb-8 text-center">
+              <div className="brand-mark mx-auto h-16 w-16 rounded-2xl">
+                <Download className="h-8 w-8" />
+              </div>
+              <h1 className="mt-4 font-display text-3xl font-semibold text-dark-50">Export your resume</h1>
+              <p className="mt-2 text-dark-300">
+                Download polished files instantly or email them directly to your account.
+              </p>
             </div>
-            <h1 className="text-3xl font-bold text-dark-50 mb-2">
-              Export Your Resume
-            </h1>
-            <p className="text-dark-400">
-              Download your AI-optimized resume or send it to your email
-            </p>
-          </div>
 
-          <div className="space-y-4">
-            {/* DOCX Download */}
-            <button
-              id="download-docx-btn"
-              onClick={handleDocx}
-              disabled={loadingDocx}
-              className="glass-card w-full p-6 flex items-center gap-5 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all duration-300 group"
-            >
-              <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                {loadingDocx ? (
-                  <Loader2 className="w-7 h-7 text-blue-400 animate-spin" />
-                ) : (
-                  <FileText className="w-7 h-7 text-blue-400" />
-                )}
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-dark-100 text-lg">Download DOCX</h3>
-                <p className="text-dark-400 text-sm">Editable Word document format</p>
-              </div>
-              <FileDown className="w-5 h-5 text-dark-500 ml-auto group-hover:text-blue-400 transition-colors" />
-            </button>
+            <div className="space-y-4">
+              {exportActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.id}
+                    id={action.id}
+                    onClick={action.onClick}
+                    disabled={action.loading || action.disabled}
+                    className={`group flex w-full items-center gap-4 rounded-2xl border border-dark-700/70 bg-dark-900/65 p-4 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${action.hoverClass}`}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-dark-600/70 bg-dark-800/80">
+                      {action.loading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-cyan-300" />
+                      ) : (
+                        <Icon className={`h-5 w-5 ${action.iconColor}`} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-dark-100">{action.title}</h3>
+                      <p className="text-sm text-dark-400">{action.description}</p>
+                    </div>
+                    <ArrowLeft className="ml-auto h-4 w-4 rotate-180 text-dark-500 transition-transform group-hover:translate-x-0.5 group-hover:text-dark-200" />
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* PDF Download */}
-            <button
-              id="download-pdf-btn"
-              onClick={handlePdf}
-              disabled={loadingPdf}
-              className="glass-card w-full p-6 flex items-center gap-5 hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-300 group"
-            >
-              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                {loadingPdf ? (
-                  <Loader2 className="w-7 h-7 text-red-400 animate-spin" />
-                ) : (
-                  <FileText className="w-7 h-7 text-red-400" />
-                )}
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-dark-100 text-lg">Download PDF</h3>
-                <p className="text-dark-400 text-sm">Print-ready, ATS-friendly format</p>
-              </div>
-              <FileDown className="w-5 h-5 text-dark-500 ml-auto group-hover:text-red-400 transition-colors" />
-            </button>
-
-            {/* Email */}
-            <button
-              id="email-resume-btn"
-              onClick={handleEmail}
-              disabled={loadingEmail || emailSent}
-              className="glass-card w-full p-6 flex items-center gap-5 hover:border-green-500/50 hover:bg-green-500/5 transition-all duration-300 group"
-            >
-              <div className="w-14 h-14 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                {loadingEmail ? (
-                  <Loader2 className="w-7 h-7 text-green-400 animate-spin" />
-                ) : emailSent ? (
-                  <CheckCircle2 className="w-7 h-7 text-green-400" />
-                ) : (
-                  <Mail className="w-7 h-7 text-green-400" />
-                )}
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-dark-100 text-lg">
-                  {emailSent ? 'Email Sent!' : 'Email to Me'}
-                </h3>
-                <p className="text-dark-400 text-sm">
-                  {emailSent
-                    ? `Sent to ${user.email}`
-                    : `Send DOCX & PDF to ${user.email || 'your email'}`}
-                </p>
-              </div>
-            </button>
-          </div>
+            <div className="mt-6 rounded-2xl border border-dark-700/70 bg-dark-900/55 px-4 py-3 text-sm text-dark-400">
+              Tip: Export after running ATS analysis to ensure your resume reflects the latest skill edits.
+            </div>
+          </section>
         </div>
       </main>
     </div>

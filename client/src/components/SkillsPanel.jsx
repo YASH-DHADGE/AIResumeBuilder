@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { patchSkills } from '../services/api';
 import toast from 'react-hot-toast';
 import { Code2, Plus, X, Check, AlertCircle } from 'lucide-react';
@@ -12,12 +12,26 @@ export default function SkillsPanel({
 }) {
   const [newSkill, setNewSkill] = useState('');
 
+  const normalizedSkills = useMemo(
+    () => skills.map((skill) => skill.toLowerCase()),
+    [skills]
+  );
+
+  const filteredMissingSkills = useMemo(
+    () =>
+      missingSkills.filter(
+        (skill) => !normalizedSkills.includes(skill.toLowerCase())
+      ),
+    [missingSkills, normalizedSkills]
+  );
+
   const handleAddSkill = async (skill) => {
     const trimmed = skill.trim();
-    if (!trimmed) return;
-    if (skills.includes(trimmed)) {
+    if (!trimmed) return false;
+
+    if (normalizedSkills.includes(trimmed.toLowerCase())) {
       toast.error('Skill already exists');
-      return;
+      return false;
     }
 
     try {
@@ -25,8 +39,10 @@ export default function SkillsPanel({
       onUpdateSection('skills', [...skills, trimmed]);
       setNewSkill('');
       toast.success(`Added: ${trimmed}`);
-    } catch (err) {
+      return true;
+    } catch {
       toast.error('Failed to add skill');
+      return false;
     }
   };
 
@@ -34,7 +50,8 @@ export default function SkillsPanel({
     try {
       await patchSkills(resumeId, [], [skill]);
       onUpdateSection('skills', skills.filter((s) => s !== skill));
-    } catch (err) {
+      toast.success(`Removed: ${skill}`);
+    } catch {
       toast.error('Failed to remove skill');
     }
   };
@@ -44,18 +61,17 @@ export default function SkillsPanel({
 
   return (
     <div className="glass-card overflow-hidden">
-      <div className="p-5 border-b border-dark-700/50">
+      <div className="border-b border-dark-700/60 p-5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 bg-violet-500/10 border border-violet-500/20 rounded-lg flex items-center justify-center">
-            <Code2 className="w-5 h-5 text-violet-400" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-400/10">
+            <Code2 className="h-5 w-5 text-violet-300" />
           </div>
           <h3 className="font-semibold text-dark-100">Skills</h3>
-          <span className="ml-auto text-xs text-dark-500 bg-dark-700 px-2 py-0.5 rounded-full">
+          <span className="ml-auto rounded-full border border-dark-600/80 bg-dark-800/80 px-2 py-0.5 text-xs text-dark-300">
             {skills.length}
           </span>
         </div>
 
-        {/* Add skill input */}
         <div className="flex gap-2">
           <input
             id="new-skill-input"
@@ -63,24 +79,26 @@ export default function SkillsPanel({
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddSkill(newSkill);
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddSkill(newSkill);
+              }
             }}
             placeholder="Add a new skill..."
           />
           <button
             id="add-skill-btn"
             onClick={() => handleAddSkill(newSkill)}
-            className="w-10 h-10 bg-primary-600 hover:bg-primary-500 rounded-xl flex items-center justify-center transition-colors"
+            className="btn-secondary flex h-10 w-10 items-center justify-center p-0"
           >
-            <Plus className="w-5 h-5 text-white" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* Skills list */}
-      <div className="p-5 space-y-2 max-h-[400px] overflow-y-auto">
+      <div className="max-h-[430px] space-y-2 overflow-y-auto p-5">
         {skills.length === 0 ? (
-          <p className="text-dark-500 text-sm text-center py-4">
+          <p className="rounded-2xl border border-dark-700/70 bg-dark-900/60 py-5 text-center text-sm text-dark-400">
             No skills yet. Add your first skill above.
           </p>
         ) : (
@@ -88,51 +106,102 @@ export default function SkillsPanel({
             {skills.map((skill) => (
               <span
                 key={skill}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-all
                   ${isMatched(skill)
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                    : 'bg-dark-700/50 text-dark-200 border border-dark-600'
+                    ? 'border-green-400/30 bg-green-500/10 text-green-200'
+                    : 'border-dark-600/80 bg-dark-800/80 text-dark-200'
                   }`}
               >
-                {isMatched(skill) && <Check className="w-3 h-3" />}
+                {isMatched(skill) && <Check className="h-3 w-3" />}
                 {skill}
                 <button
+                  type="button"
                   onClick={() => handleRemoveSkill(skill)}
-                  className="ml-0.5 text-dark-500 hover:text-red-400 transition-colors"
+                  className="ml-0.5 text-dark-500 transition-colors hover:text-red-300"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="h-3 w-3" />
                 </button>
               </span>
             ))}
           </div>
         )}
 
-        {/* Missing skills section */}
-        {missingSkills.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-dark-700/50">
+        {filteredMissingSkills.length > 0 && (
+          <div className="mt-4 border-t border-dark-700/60 pt-4">
             <div className="flex items-center gap-2 mb-3">
-              <AlertCircle className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-medium text-amber-400 uppercase tracking-wider">
-                Missing Skills ({missingSkills.length})
+              <AlertCircle className="h-4 w-4 text-amber-300" />
+              <span className="text-xs font-medium uppercase tracking-[0.16em] text-amber-300">
+                Missing Skills
+              </span>
+              <span className="ml-auto rounded-full border border-dark-600/80 bg-dark-800/80 px-2 py-0.5 text-xs text-dark-300">
+                {filteredMissingSkills.length}
               </span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {missingSkills.map((skill) => (
-                <button
+            <div className="flex flex-col gap-2">
+              {filteredMissingSkills.map((skill) => (
+                <MissingSkillButton
                   key={skill}
-                  onClick={() => handleAddSkill(skill)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
-                    bg-red-500/10 text-red-400 border border-red-500/20
-                    hover:bg-red-500/20 transition-all cursor-pointer group"
-                >
-                  <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  {skill}
-                </button>
+                  skill={skill}
+                  onAdd={handleAddSkill}
+                />
               ))}
             </div>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function MissingSkillButton({ skill, onAdd }) {
+  const [state, setState] = useState('idle');
+
+  const handleClick = async () => {
+    if (state !== 'idle') return;
+    setState('loading');
+    const success = await onAdd(skill);
+    if (success) {
+      setState('done');
+    } else {
+      setState('idle');
+    }
+  };
+
+  if (state === 'done') {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-green-400/30 bg-green-500/10 px-4 py-2.5 text-sm font-medium text-green-200 transition-all">
+        <Check className="h-4 w-4 flex-shrink-0" />
+        <span>{skill}</span>
+        <span className="ml-auto text-xs opacity-60">Added</span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={state === 'loading'}
+      className={`group flex w-full items-center gap-2 rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition-all
+        ${state === 'loading'
+          ? 'cursor-wait border-dark-600 bg-dark-800/70 text-dark-400'
+          : 'cursor-pointer border-red-400/30 bg-red-500/10 text-red-200 hover:border-red-300/60 hover:bg-red-500/20'
+        }`}
+    >
+      {state === 'loading' ? (
+        <>
+          <span className="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-dark-500 border-t-cyan-300" />
+          <span>Adding {skill}...</span>
+        </>
+      ) : (
+        <>
+          <Plus className="h-4 w-4 flex-shrink-0 text-red-200 transition-colors group-hover:text-red-100" />
+          <span>{skill}</span>
+          <span className="ml-auto text-xs text-red-200/80 opacity-0 transition-opacity group-hover:opacity-100">
+            Add to resume
+          </span>
+        </>
+      )}
+    </button>
   );
 }

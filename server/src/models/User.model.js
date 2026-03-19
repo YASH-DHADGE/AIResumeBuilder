@@ -21,6 +21,30 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    experience: {
+      type: Array,
+      default: [],
+    },
+    education: {
+      type: Array,
+      default: [],
+    },
+    projects: {
+      type: Array,
+      default: [],
+    },
+    summary: {
+      type: String,
+      default: '',
+    },
+    personalInfo: {
+      type: Object,
+      default: {},
+    },
   },
   {
     timestamps: { createdAt: 'createdAt', updatedAt: false },
