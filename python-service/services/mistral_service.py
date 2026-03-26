@@ -69,6 +69,51 @@ async def parse_resume_text(resume_text: str) -> dict:
         if match:
             sections = json.loads(match.group())
         else:
-            raise ValueError(f"Mistral did not return valid JSON: {raw[:500]}")
+            raise ValueError(f"Mistral did not return valid JSON: {raw:.500s}")
 
     return sections
+
+
+async def extract_job_skills(job_description: str) -> list[str]:
+    """
+    Extract required skills from a job description using Mistral AI.
+    """
+    if not api_key:
+        raise ValueError("MISTRAL_API_KEY is not configured.")
+
+    prompt = f"""
+    Extract ALL required technical and soft skills from this job description.
+    Return ONLY a JSON array of strings. No explanation.
+    
+    Job Description:
+    {job_description}
+    """
+
+    response = await client.chat.complete_async(
+        model="mistral-large-latest",
+        messages=[
+            {"role": "system", "content": "You are a technical job description analyzer."},
+            {"role": "user", "content": prompt}
+        ],
+        response_format={"type": "json_object"}
+    )
+    
+    raw = response.choices[0].message.content.strip()
+
+    try:
+        # If response_format was json_object, Mistral might still wrap it in a root key
+        data = json.loads(raw)
+        if isinstance(data, dict):
+            # Look for a list in the dict
+            for val in data.values():
+                if isinstance(val, list):
+                    return [str(s) for s in val]
+        if isinstance(data, list):
+            return [str(s) for s in data]
+        
+        raise ValueError("Mistral did not return a list of skills.")
+    except json.JSONDecodeError:
+        match = re.search(r"\[.*\]", raw, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        raise ValueError(f"Mistral did not return valid JSON array: {raw:.500s}")

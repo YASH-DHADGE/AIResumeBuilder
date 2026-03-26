@@ -12,6 +12,7 @@
   const JD_SELECTORS = [
     // LinkedIn
     '.jobs-description__content', '.jobs-description-content__text', '.jobs-box__html-content', '#job-details',
+    '.jobs-search__job-details--wrapper', 'section.job-details',
     // Internshala
     '.detail_view', '.internship_details',
     // Naukri
@@ -26,12 +27,14 @@
 
   const JOB_LIST_SELECTORS = [
     '.jobs-search-results__list', '.scaffold-layout__list', '.jobs-search-results-list',
+    '.jobs-search__results-list', '.jobs-search-results-list__list',
     '.internship_list_container', '#internship_list_container', '.list_container',
     '.list', '.srp-jobtuple-wrapper', '.job-results',
     '.react-job-listing-container', '#MainCol'
   ];
   const JOB_CARD_SELECTORS = [
     'li.jobs-search-results__list-item', 'li.scaffold-layout__list-item', 'div.job-card-container',
+    '[class*="job-card-container"]', '.job-card-list__entity-lockup',
     '.individual_internship', '.internship_meta',
     '.jobTuple', '.srp-jobtuple-wrapper', 'article.jobTuple',
     '.job-item',
@@ -223,56 +226,73 @@
     const list = findJobList();
     if (!list) return;
 
-    // Build toolbar
+    // Build toolbar container
     const toolbar = document.createElement('div');
     toolbar.id = 'ai-resume-filter-toolbar';
     toolbar.style.cssText = `
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       flex-wrap: wrap;
-      padding: 10px 16px;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, rgba(17,24,39,0.95), rgba(30,41,59,0.95));
-      border: 1px solid rgba(59,130,246,0.25);
+      gap: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95));
+      border: 1px solid rgba(148, 163, 184, 0.15);
       border-radius: 12px;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       backdrop-filter: blur(12px);
       position: relative;
       z-index: 9999;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      flex-shrink: 0;
     `;
 
+    const leftGroup = document.createElement('div');
+    leftGroup.style.cssText = `display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; flex: 1 1 auto;`;
+
+    const rightGroup = document.createElement('div');
+    rightGroup.style.cssText = `display: flex; align-items: center; gap: 6px; flex-shrink: 0;`;
+
     // Label
-    const label = document.createElement('span');
+    const label = document.createElement('div');
     label.style.cssText = `
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
-      color: #93c5fd;
+      color: #38bdf8;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.05em;
       display: flex;
       align-items: center;
       gap: 6px;
     `;
     label.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
       </svg>
-      AI Resume Filter
+      Resume AI
     `;
 
     // Skill count badge
-    const skillBadge = document.createElement('span');
+    const skillBadge = document.createElement('div');
     skillBadge.style.cssText = `
       font-size: 11px;
-      color: #6b7280;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
+      font-weight: 500;
+      color: #cbd5e1;
+      background: rgba(248, 250, 252, 0.08);
+      border: 1px solid rgba(248, 250, 252, 0.1);
       border-radius: 20px;
-      padding: 2px 8px;
+      padding: 3px 10px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
     `;
-    skillBadge.textContent = `${userSkills.length} skills in profile`;
+    skillBadge.textContent = userSkills.length + ' skills';
+
+    // Divider
+    const divider = document.createElement('div');
+    divider.style.cssText = 'width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 4px;';
 
     // Filter toggle button
     const filterBtn = document.createElement('button');
@@ -282,58 +302,45 @@
       align-items: center;
       gap: 6px;
       padding: 6px 14px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       border-radius: 8px;
-      border: 1px solid rgba(59,130,246,0.4);
-      background: rgba(59,130,246,0.1);
-      color: #93c5fd;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.1);
+      color: #bae6fd;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: inherit;
+      outline: none;
     `;
-    filterBtn.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-      </svg>
-      Filter by my skills
-    `;
+    const filterDefaultHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Filter Matches';
+    const filterActiveHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Filtering Active';
+    filterBtn.innerHTML = filterDefaultHTML;
 
     filterBtn.addEventListener('mouseenter', () => {
-      filterBtn.style.background = filterActive
-        ? 'rgba(239,68,68,0.2)'
-        : 'rgba(59,130,246,0.25)';
+      filterBtn.style.transform = 'translateY(-1px)';
+      filterBtn.style.background = filterActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.2)';
+      filterBtn.style.boxShadow = filterActive ? '0 4px 12px rgba(16, 185, 129, 0.15)' : '0 4px 12px rgba(56, 189, 248, 0.15)';
     });
     filterBtn.addEventListener('mouseleave', () => {
-      filterBtn.style.background = filterActive
-        ? 'rgba(16,185,129,0.15)'
-        : 'rgba(59,130,246,0.1)';
+      filterBtn.style.transform = 'translateY(0)';
+      filterBtn.style.background = filterActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.1)';
+      filterBtn.style.boxShadow = 'none';
     });
-
     filterBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
       filterActive = !filterActive;
       if (filterActive) {
-        filterBtn.style.background = 'rgba(16,185,129,0.15)';
-        filterBtn.style.borderColor = 'rgba(16,185,129,0.4)';
-        filterBtn.style.color = '#34d399';
-        filterBtn.innerHTML = `
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          Filtering by skills
-        `;
+        filterBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+        filterBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        filterBtn.style.color = '#6ee7b7';
+        filterBtn.innerHTML = filterActiveHTML;
       } else {
-        filterBtn.style.background = 'rgba(59,130,246,0.1)';
-        filterBtn.style.borderColor = 'rgba(59,130,246,0.4)';
-        filterBtn.style.color = '#93c5fd';
-        filterBtn.innerHTML = `
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          Filter by my skills
-        `;
+        filterBtn.style.background = 'rgba(56, 189, 248, 0.1)';
+        filterBtn.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+        filterBtn.style.color = '#bae6fd';
+        filterBtn.innerHTML = filterDefaultHTML;
       }
       applyFilterAndSort();
     });
@@ -346,95 +353,189 @@
       align-items: center;
       gap: 6px;
       padding: 6px 14px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       border-radius: 8px;
-      border: 1px solid rgba(139,92,246,0.4);
-      background: rgba(139,92,246,0.1);
-      color: #c4b5fd;
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      background: rgba(167, 139, 250, 0.1);
+      color: #ddd6fe;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: inherit;
+      outline: none;
     `;
-    sortBtn.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-      </svg>
-      Sort by match
-    `;
+    sortBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> Sort Best';
     sortBtn.addEventListener('mouseenter', () => {
-      sortBtn.style.background = 'rgba(139,92,246,0.25)';
+      sortBtn.style.transform = 'translateY(-1px)';
+      sortBtn.style.background = 'rgba(167, 139, 250, 0.2)';
+      sortBtn.style.boxShadow = '0 4px 12px rgba(167, 139, 250, 0.15)';
     });
     sortBtn.addEventListener('mouseleave', () => {
-      sortBtn.style.background = 'rgba(139,92,246,0.1)';
+      sortBtn.style.transform = 'translateY(0)';
+      sortBtn.style.background = 'rgba(167, 139, 250, 0.1)';
+      sortBtn.style.boxShadow = 'none';
     });
     sortBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
       applyFilterAndSort();
-
-      // Brief visual feedback
-      sortBtn.style.background = 'rgba(16,185,129,0.2)';
-      sortBtn.style.color = '#34d399';
-      sortBtn.style.borderColor = 'rgba(16,185,129,0.4)';
+      sortBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+      sortBtn.style.color = '#6ee7b7';
+      sortBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
       setTimeout(() => {
-        sortBtn.style.background = 'rgba(139,92,246,0.1)';
-        sortBtn.style.color = '#c4b5fd';
-        sortBtn.style.borderColor = 'rgba(139,92,246,0.4)';
-      }, 1500);
+        sortBtn.style.background = 'rgba(167, 139, 250, 0.1)';
+        sortBtn.style.color = '#ddd6fe';
+        sortBtn.style.borderColor = 'rgba(167, 139, 250, 0.3)';
+      }, 1000);
     });
 
-    // Refresh button (re-fetches skills and re-scores)
+    // Refresh button
     const refreshBtn = document.createElement('button');
-    refreshBtn.id = 'ai-resume-refresh-btn';
     refreshBtn.title = 'Refresh skills from your profile';
     refreshBtn.style.cssText = `
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 600;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
-      border: 1px solid rgba(107,114,128,0.3);
-      background: transparent;
-      color: #6b7280;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(255, 255, 255, 0.03);
+      color: #94a3b8;
       cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-      margin-left: auto;
+      transition: all 0.2s ease;
+      outline: none;
     `;
-    refreshBtn.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-        <path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-      Refresh
-    `;
+    refreshBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+    refreshBtn.addEventListener('mouseenter', () => {
+       refreshBtn.style.background = 'rgba(255, 255, 255, 0.08)';
+       refreshBtn.style.color = '#e2e8f0';
+    });
+    refreshBtn.addEventListener('mouseleave', () => {
+       refreshBtn.style.background = 'rgba(255, 255, 255, 0.03)';
+       refreshBtn.style.color = '#94a3b8';
+    });
     refreshBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
-      refreshBtn.style.color = '#34d399';
+      const svg = refreshBtn.querySelector('svg');
+      if (svg) {
+        svg.style.transition = 'transform 0.4s ease';
+        svg.style.transform = 'rotate(180deg)';
+      }
+      refreshBtn.style.color = '#38bdf8';
       loadUserSkills(() => {
         applyFilterAndSort();
-        skillBadge.textContent = `${userSkills.length} skills in profile`;
-        setTimeout(() => { refreshBtn.style.color = '#6b7280'; }, 1000);
+        skillBadge.textContent = userSkills.length + ' skills';
+        setTimeout(() => { 
+          refreshBtn.style.color = '#94a3b8'; 
+          if (svg) svg.style.transform = 'rotate(0deg)';
+        }, 800);
       });
     });
 
-    toolbar.appendChild(label);
-    toolbar.appendChild(skillBadge);
-    toolbar.appendChild(filterBtn);
-    toolbar.appendChild(sortBtn);
-    toolbar.appendChild(refreshBtn);
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.title = 'Close AI Toolbar';
+    closeBtn.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    `;
+    closeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    closeBtn.addEventListener('mouseenter', () => {
+       closeBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+       closeBtn.style.color = '#ef4444';
+    });
+    closeBtn.addEventListener('mouseleave', () => {
+       closeBtn.style.background = 'transparent';
+       closeBtn.style.color = '#64748b';
+    });
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toolbar.remove();
+      filterToolbarInjected = false;
+      filterActive = false;
+      // Undo filter constraints on cards so they display normally
+      const listContainer = findJobList();
+      if (listContainer) {
+        const resetCards = findJobCards(listContainer);
+        resetCards.forEach(c => {
+           c.style.display = '';
+           c.dataset.aiHidden = '';
+        });
+      }
+    });
 
-    // Insert toolbar before the job list
+    leftGroup.appendChild(label);
+    leftGroup.appendChild(skillBadge);
+    leftGroup.appendChild(divider);
+    leftGroup.appendChild(filterBtn);
+    leftGroup.appendChild(sortBtn);
+
+    rightGroup.appendChild(refreshBtn);
+    rightGroup.appendChild(closeBtn);
+
+    toolbar.appendChild(leftGroup);
+    toolbar.appendChild(rightGroup);
+
     list.parentNode.insertBefore(toolbar, list);
     filterToolbarInjected = true;
 
     // Initial badge pass
     applyFilterAndSort();
+
+    // ─── Responsive: collapse to icon-only when narrow ─────────
+    const filterBtnEl = toolbar.querySelector('#ai-resume-filter-btn');
+    const sortBtnEl   = toolbar.querySelector('#ai-resume-sort-btn');
+    const labelEl     = toolbar.querySelector('div[style*="text-transform: uppercase"]');
+
+    function setCompactMode(isCompact) {
+      if (isCompact) {
+        // Icon-only: hide text nodes by changing padding/font-size
+        if (filterBtnEl) {
+          filterBtnEl.dataset.label = filterBtnEl.textContent.trim();
+          filterBtnEl.style.padding = '6px 8px';
+          // Keep inner SVG, hide trailing text node
+          const textNodes = Array.from(filterBtnEl.childNodes).filter(n => n.nodeType === 3);
+          textNodes.forEach(n => n.textContent = '');
+        }
+        if (sortBtnEl) {
+          sortBtnEl.dataset.label = sortBtnEl.textContent.trim();
+          sortBtnEl.style.padding = '6px 8px';
+          const textNodes = Array.from(sortBtnEl.childNodes).filter(n => n.nodeType === 3);
+          textNodes.forEach(n => n.textContent = '');
+        }
+        if (labelEl) labelEl.style.display = 'none';
+      } else {
+        if (filterBtnEl) {
+          filterBtnEl.style.padding = '6px 14px';
+        }
+        if (sortBtnEl) {
+          sortBtnEl.style.padding = '6px 14px';
+        }
+        if (labelEl) labelEl.style.display = '';
+      }
+    }
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          setCompactMode(entry.contentRect.width < 380);
+        }
+      });
+      ro.observe(toolbar);
+    }
   }
 
   // ─── Init ───────────────────────────────────────────────────

@@ -1,0 +1,10 @@
+{
+  "venvPath": "d:/Scriptlet Resume/ai-resume-builder/AIResumeBuilder/python-service",
+  "venv": "venv",
+  "pythonVersion": "3.11",
+  "executionEnvironments": [
+    {
+      "root": "."
+    }
+  ]
+}
