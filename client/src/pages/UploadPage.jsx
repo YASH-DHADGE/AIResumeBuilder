@@ -13,6 +13,8 @@ import {
   Sparkles,
   Upload,
 } from 'lucide-react';
+import JobDashboard from '../components/JobSuite/JobDashboard';
+import { JobAnalysisProvider } from '../context/JobAnalysisContext';
 import {
   clearSession,
   getAuthToken,
@@ -91,212 +93,173 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="app-shell">
-      <header className="sticky top-0 z-50 border-b border-dark-700/70 bg-dark-950/75 backdrop-blur-xl">
-        <div className="page-wrap flex h-16 items-center justify-between">
-          <button
-            onClick={() => navigate('/upload')}
-            className="flex items-center gap-3"
-            aria-label="Go to upload page"
-          >
-            <div className="brand-mark h-9 w-9 rounded-xl">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div className="text-left">
-              <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Workspace</p>
-              <p className="font-display text-base font-semibold text-dark-50">AI Resume Builder</p>
-            </div>
-          </button>
-
-          <div className="flex items-center gap-2 sm:gap-3">
+    <JobAnalysisProvider resumeId={parsedResume?.resumeId}>
+      <div className="app-shell min-h-screen flex flex-col overflow-y-auto">
+        <header className="sticky top-0 z-50 border-b border-dark-700/70 bg-dark-950/75 backdrop-blur-xl">
+          <div className="page-wrap flex h-16 items-center justify-between">
             <button
-              id="profile-btn"
-              onClick={() => navigate('/profile')}
-              className="btn-secondary flex items-center gap-2 px-3 py-2"
+              onClick={() => navigate('/upload')}
+              className="flex items-center gap-3"
+              aria-label="Go to upload page"
             >
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-xs font-semibold text-cyan-300">
-                {userInitial}
-              </span>
-              <span className="hidden text-sm sm:inline">{userName}</span>
+              <div className="brand-mark h-9 w-9 rounded-xl">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Workspace</p>
+                <p className="font-display text-base font-semibold text-dark-50">AI Resume Builder</p>
+              </div>
             </button>
-            <button
-              id="logout-btn"
-              onClick={() => {
-                clearSession();
-                navigate('/login');
-              }}
-              className="btn-ghost flex items-center gap-2 px-3 py-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </header>
 
-      <main className="page-wrap grid flex-1 gap-6 py-8 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="panel-card-strong p-6 sm:p-8">
-          <span className="section-kicker">Upload Resume</span>
-          <h1 className="mt-4 font-display text-3xl font-semibold text-dark-50 sm:text-4xl">
-            Turn your existing resume into a live, editable profile.
-          </h1>
-          <p className="mt-3 text-dark-300">
-            Drag and drop your latest resume. We will parse sections, extract skills, and prepare it for
-            ATS optimization in the editor.
-          </p>
-
-          <div
-            {...getRootProps()}
-            id="dropzone"
-            className={`mt-7 cursor-pointer rounded-3xl border border-dashed p-8 text-center transition-all duration-300
-              ${isDragActive
-                ? 'border-cyan-300 bg-cyan-400/10 scale-[1.01]'
-                : file
-                  ? 'border-emerald-400/60 bg-emerald-500/10'
-                  : 'border-dark-600/80 bg-dark-900/60 hover:border-cyan-300/50 hover:bg-cyan-400/5'
-              }`}
-          >
-            <input {...getInputProps()} id="file-input" />
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dark-600/80 bg-dark-900/70">
-                {getFileIcon()}
-              </div>
-
-              {file ? (
-                <>
-                  <div className="flex items-center gap-2 text-emerald-300">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <span className="font-medium">File selected</span>
-                  </div>
-                  <p className="max-w-full truncate text-sm text-dark-200">{file.name}</p>
-                  <p className="text-xs text-dark-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                </>
-              ) : (
-                <>
-                  <p className="text-lg font-semibold text-dark-100">
-                    {isDragActive ? 'Drop file here' : 'Drop your resume or click to browse'}
-                  </p>
-                  <p className="text-sm text-dark-400">Supported: PDF, DOCX up to 10MB</p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {!parsedResume && (
-            <button
-              id="upload-btn"
-              onClick={handleUpload}
-              disabled={!file || uploading}
-              className="btn-primary mt-6 flex w-full items-center justify-center gap-2 py-3"
-            >
-              {uploading ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-dark-950/30 border-t-dark-950" />
-                  Parsing resume...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Parse with AI
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          )}
-
-          {uploading && (
-            <div className="mt-5 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="text-cyan-100">Extracting sections and skills</span>
-                <span className="font-semibold text-cyan-300">{progress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-dark-900/70">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-300 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-6">
-          {parsedResume ? (
-            <article className="panel-card border-emerald-400/30 bg-emerald-500/10 p-6 animate-slide-up">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-xl border border-emerald-400/40 bg-emerald-400/15 p-2.5">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-300" />
-                </div>
-                <div>
-                  <h2 className="font-display text-xl font-semibold text-dark-50">Resume parsed successfully</h2>
-                  <p className="text-sm text-dark-300">Review and continue to the editor.</p>
-                </div>
-              </div>
-
-              <dl className="space-y-3 rounded-2xl border border-dark-700/70 bg-dark-900/65 p-4 text-sm">
-                <div className="flex items-center justify-between gap-4">
-                  <dt className="text-dark-400">Candidate name</dt>
-                  <dd className="truncate font-medium text-dark-100">
-                    {parsedResume.sections?.personalInfo?.name || 'Not detected'}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <dt className="text-dark-400">Contact email</dt>
-                  <dd className="truncate font-medium text-dark-100">
-                    {parsedResume.sections?.personalInfo?.email || 'Not detected'}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <dt className="text-dark-400">Extracted skills</dt>
-                  <dd className="font-medium text-dark-100">
-                    {parsedResume.sections?.skills?.length || 0}
-                  </dd>
-                </div>
-              </dl>
-
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
-                id="save-db-btn"
-                onClick={handleSaveToDB}
-                className="btn-primary mt-5 flex w-full items-center justify-center gap-2 py-3"
+                id="profile-btn"
+                onClick={() => navigate('/profile')}
+                className="btn-secondary flex items-center gap-2 px-3 py-2"
               >
-                <Shield className="h-4 w-4" />
-                Save and open editor
-                <ArrowRight className="h-4 w-4" />
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-xs font-semibold text-cyan-300">
+                  {userInitial}
+                </span>
+                <span className="hidden text-sm sm:inline">{userName}</span>
               </button>
-            </article>
-          ) : (
-            <article className="panel-card p-6">
-              <h2 className="font-display text-2xl font-semibold text-dark-50">What happens next</h2>
-              <ol className="mt-4 space-y-3 text-sm text-dark-300">
-                <li className="flex items-start gap-3">
-                  <span className="pill mt-0.5">1</span>
-                  Parse sections like summary, experience, education, and skills.
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="pill mt-0.5">2</span>
-                  Fine-tune content in the editor with autosave and job match analysis.
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="pill mt-0.5">3</span>
-                  Export polished DOCX or PDF and optionally email to yourself.
-                </li>
-              </ol>
-            </article>
-          )}
-
-          <article className="panel-card p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-cyan-400/25 bg-cyan-400/10 p-2">
-                <Shield className="h-5 w-5 text-cyan-300" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-dark-100">Privacy</h3>
-                <p className="text-sm text-dark-400">Files are processed securely for your account session.</p>
-              </div>
+              <button
+                id="logout-btn"
+                onClick={() => {
+                  clearSession();
+                  navigate('/login');
+                }}
+                className="btn-ghost flex items-center gap-2 px-3 py-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
             </div>
-          </article>
-        </section>
-      </main>
-    </div>
+          </div>
+        </header>
+
+        <main className="page-wrap py-8 space-y-12">
+          {/* Step 1: Upload */}
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <section className="panel-card-strong p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500 text-dark-950 font-bold text-sm">1</span>
+                <span className="section-kicker">Upload Source</span>
+              </div>
+              <h1 className="font-display text-3xl font-semibold text-dark-50 sm:text-4xl">
+                Start with your current resume.
+              </h1>
+              <p className="mt-3 text-dark-300">
+                Drag and drop your latest file. We'll extract your history and skills for AI optimization.
+              </p>
+
+              <div
+                {...getRootProps()}
+                className={`mt-7 cursor-pointer rounded-3xl border border-dashed p-8 text-center transition-all duration-300
+                  ${isDragActive
+                    ? 'border-cyan-300 bg-cyan-400/10'
+                    : file
+                      ? 'border-emerald-400/60 bg-emerald-500/10'
+                      : 'border-dark-600/80 bg-dark-900/60 hover:border-cyan-300/50 hover:bg-cyan-400/5'
+                  }`}
+              >
+                <input {...getInputProps()} />
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dark-600/80 bg-dark-900/70">
+                    {getFileIcon()}
+                  </div>
+                  {file ? (
+                    <p className="max-w-full truncate text-sm text-dark-200">{file.name}</p>
+                  ) : (
+                    <p className="text-lg font-semibold text-dark-100 italic">Drop PDF or DOCX</p>
+                  )}
+                </div>
+              </div>
+
+              {!parsedResume && (
+                <button
+                  onClick={handleUpload}
+                  disabled={!file || uploading}
+                  className="btn-primary mt-6 flex w-full items-center justify-center gap-2 py-3 shadow-lg shadow-cyan-500/10"
+                >
+                  {uploading ? (
+                    <>Parsing Resume...</>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Initialize Profile
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              )}
+            </section>
+
+            <section className="space-y-6">
+              {parsedResume ? (
+                <article className="panel-card border-emerald-400/30 bg-emerald-500/5 p-6 animate-slide-up">
+                  <div className="mb-5 flex items-center gap-3">
+                    <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                    <div>
+                      <h2 className="font-display text-xl font-semibold text-dark-50">Profile Ready</h2>
+                      <p className="text-sm text-dark-400">Basic extraction complete.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSaveToDB}
+                    className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+                  >
+                    Open Full Editor <ArrowRight className="h-4 w-4" />
+                  </button>
+                </article>
+              ) : (
+                <article className="panel-card p-6 border-dark-700/50 bg-dark-900/40">
+                  <h2 className="font-display text-xl font-semibold text-dark-50 mb-4">Quick Start Guide</h2>
+                  <ul className="space-y-4 text-sm text-dark-300">
+                    <li className="flex gap-3">
+                      <span className="text-cyan-400 font-bold">01</span>
+                      <span>Upload your PDF or DOCX file first.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-cyan-400 font-bold">02</span>
+                      <span>Enter the job description in the panel below.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-cyan-400 font-bold">03</span>
+                      <span>Generate ATS insights and a custom cover letter.</span>
+                    </li>
+                  </ul>
+                </article>
+              )}
+              <article className="panel-card p-5 border-dark-700/50 bg-dark-900/20">
+                <div className="flex items-center gap-3 text-dark-400 text-xs">
+                  <Shield className="h-4 w-4" />
+                  Your data is encrypted and used only for your session.
+                </div>
+              </article>
+            </section>
+          </div>
+
+          {/* Step 2: Job Matching (Intelligence Suite) */}
+          <section className="animate-slide-up">
+             <div className="flex items-center gap-3 mb-6">
+               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500 text-dark-950 font-bold text-sm">2</span>
+               <h2 className="font-display text-3xl font-semibold text-dark-50">Match Role Intelligence</h2>
+             </div>
+             <p className="text-dark-400 max-w-3xl mb-8">
+               Paste the job description you're targeting. We'll run a deep ATS analysis, suggest specific wording improvements, 
+               and draft a tailored cover letter based on your matched skills.
+             </p>
+             
+             <div className="bg-dark-900/40 rounded-[2rem] border border-dark-700/50 p-1">
+                <JobDashboard resume={parsedResume} />
+             </div>
+          </section>
+
+          <footer className="pt-12 pb-8 border-t border-dark-800 text-center text-dark-500 text-sm">
+            <p>&copy; 2026 AI Resume Builder — Premium Intelligence Suite</p>
+          </footer>
+        </main>
+      </div>
+    </JobAnalysisProvider>
   );
 }

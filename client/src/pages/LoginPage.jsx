@@ -163,11 +163,11 @@ export default function LoginPage() {
                   type="password"
                   autoComplete={isRegister ? 'new-password' : 'current-password'}
                   className="input-field w-full"
-                  placeholder="At least 6 characters"
+                  placeholder="At least 3 characters"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   required
-                  minLength={6}
+                  minLength={3}
                 />
               </div>
 

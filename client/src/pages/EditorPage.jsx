@@ -4,6 +4,8 @@ import useResume from '../hooks/useResume';
 import ResumeEditor from '../components/ResumeEditor';
 import SkillsPanel from '../components/SkillsPanel';
 import ATSScoreCard from '../components/ATSScoreCard';
+import JobDashboard from '../components/JobSuite/JobDashboard';
+import { JobAnalysisProvider } from '../context/JobAnalysisContext';
 import {
   ArrowLeft,
   Download,
@@ -131,16 +133,17 @@ export default function EditorPage() {
             </div>
           )}
           <ResumeEditor sections={resume.sections} onUpdateSection={updateSection} />
+          
+          <JobAnalysisProvider 
+            resumeId={resumeId} 
+            onUpdateSection={updateSection} 
+            currentSections={resume.sections}
+          >
+            <JobDashboard resume={resume} />
+          </JobAnalysisProvider>
         </section>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit animate-slide-up">
-          <ATSScoreCard
-            atsScore={resume.atsScore}
-            matchedSkills={resume.matchedSkills}
-            missingSkills={resume.missingSkills}
-            analyzing={analyzing}
-            onAnalyze={runAnalysis}
-          />
           <SkillsPanel
             skills={resume.sections?.skills || []}
             matchedSkills={resume.matchedSkills || []}

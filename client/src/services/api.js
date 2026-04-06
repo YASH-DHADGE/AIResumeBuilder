@@ -59,6 +59,11 @@ export const patchSkills = (id, add = [], remove = []) =>
   api.patch(`/resume/${id}/skills`, { add, remove });
 
 // ─── Job Analysis ───
+export const analyzeAtsScore = (data) => api.post('/job/ats-score', data);
+export const analyzeEnhancements = (data) => api.post('/job/enhance', data);
+export const generateCoverLetter = (data) => api.post('/job/cover-letter', data);
+
+// Kept for backward compatibility while old UI is replaced
 export const analyzeJob = (jobDescription, resumeId) =>
   api.post('/job/analyze', { jobDescription, resumeId });
 

@@ -43,4 +43,50 @@ async function matchSkills(resumeSkills, jobSkills) {
   return data;
 }
 
-module.exports = { parseResumeText, extractJobSkills, matchSkills };
+/**
+ * Job Intelligence: Get ATS Score
+ */
+async function fetchATSScore(resumeJson, jobDescription) {
+  const { data } = await pythonClient.post('/ats-score', {
+    resume_json: resumeJson,
+    job_description: jobDescription,
+  });
+  return data.score_report;
+}
+
+/**
+ * Job Intelligence: Get Resume Enhancements
+ */
+async function fetchEnhancements(resumeJson, jobDescription, jobTitle, companyName) {
+  const { data } = await pythonClient.post('/enhance', {
+    resume_json: resumeJson,
+    job_description: jobDescription,
+    job_title: jobTitle,
+    company_name: companyName,
+  });
+  return data.enhancement_report;
+}
+
+/**
+ * Job Intelligence: Generate Cover Letter
+ */
+async function fetchCoverLetter(resumeJson, jobDescription, jobTitle, companyName, candidateName, params = {}) {
+  const { data } = await pythonClient.post('/cover-letter', {
+    resume_json: resumeJson,
+    job_description: jobDescription,
+    job_title: jobTitle,
+    company_name: companyName,
+    candidate_name: candidateName,
+    ...params
+  });
+  return data.cover_letter;
+}
+
+module.exports = { 
+  parseResumeText, 
+  extractJobSkills, 
+  matchSkills,
+  fetchATSScore,
+  fetchEnhancements,
+  fetchCoverLetter
+};

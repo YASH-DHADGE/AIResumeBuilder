@@ -25,6 +25,14 @@ async function register(req, res) {
     });
   }
 
+  if (password.length < 3) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 3 characters long',
+      data: null,
+    });
+  }
+
   const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
     return res.status(409).json({
