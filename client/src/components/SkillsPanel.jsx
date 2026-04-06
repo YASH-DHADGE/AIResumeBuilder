@@ -63,8 +63,8 @@ export default function SkillsPanel({
     <div className="glass-card overflow-hidden">
       <div className="border-b border-dark-700/60 p-5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-400/10">
-            <Code2 className="h-5 w-5 text-violet-300" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-teal-300/30 bg-teal-300/10">
+            <Code2 className="h-5 w-5 text-teal-200" />
           </div>
           <h3 className="font-semibold text-dark-100">Skills</h3>
           <span className="ml-auto rounded-full border border-dark-600/80 bg-dark-800/80 px-2 py-0.5 text-xs text-dark-300">
@@ -108,7 +108,7 @@ export default function SkillsPanel({
                 key={skill}
                 className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-all
                   ${isMatched(skill)
-                    ? 'border-green-400/30 bg-green-500/10 text-green-200'
+                    ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100'
                     : 'border-dark-600/80 bg-dark-800/80 text-dark-200'
                   }`}
               >
@@ -129,7 +129,7 @@ export default function SkillsPanel({
         {filteredMissingSkills.length > 0 && (
           <div className="mt-4 border-t border-dark-700/60 pt-4">
             <div className="flex items-center gap-2 mb-3">
-              <AlertCircle className="h-4 w-4 text-amber-300" />
+              <AlertCircle className="h-4 w-4 text-orange-200" />
               <span className="text-xs font-medium uppercase tracking-[0.16em] text-amber-300">
                 Missing Skills
               </span>
@@ -169,7 +169,7 @@ function MissingSkillButton({ skill, onAdd }) {
 
   if (state === 'done') {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-green-400/30 bg-green-500/10 px-4 py-2.5 text-sm font-medium text-green-200 transition-all">
+      <div className="flex items-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2.5 text-sm font-medium text-emerald-100 transition-all">
         <Check className="h-4 w-4 flex-shrink-0" />
         <span>{skill}</span>
         <span className="ml-auto text-xs opacity-60">Added</span>
@@ -185,7 +185,7 @@ function MissingSkillButton({ skill, onAdd }) {
       className={`group flex w-full items-center gap-2 rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition-all
         ${state === 'loading'
           ? 'cursor-wait border-dark-600 bg-dark-800/70 text-dark-400'
-          : 'cursor-pointer border-red-400/30 bg-red-500/10 text-red-200 hover:border-red-300/60 hover:bg-red-500/20'
+          : 'cursor-pointer border-orange-200/35 bg-orange-200/10 text-orange-100 hover:border-orange-100/60 hover:bg-orange-200/20'
         }`}
     >
       {state === 'loading' ? (
@@ -195,9 +195,9 @@ function MissingSkillButton({ skill, onAdd }) {
         </>
       ) : (
         <>
-          <Plus className="h-4 w-4 flex-shrink-0 text-red-200 transition-colors group-hover:text-red-100" />
+          <Plus className="h-4 w-4 flex-shrink-0 text-orange-100 transition-colors group-hover:text-orange-50" />
           <span>{skill}</span>
-          <span className="ml-auto text-xs text-red-200/80 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="ml-auto text-xs text-orange-100/80 opacity-0 transition-opacity group-hover:opacity-100">
             Add to resume
           </span>
         </>

@@ -19,6 +19,7 @@ import {
   getStoredUser,
   requireAuth,
 } from '../utils/auth';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function DownloadPage() {
   const { resumeId } = useParams();
@@ -101,8 +102,8 @@ export default function DownloadPage() {
       title: 'Download DOCX',
       description: 'Editable Word format for custom edits.',
       icon: FileText,
-      iconColor: 'text-blue-300',
-      hoverClass: 'hover:border-blue-400/45 hover:bg-blue-500/10',
+      iconColor: 'text-amber-200',
+      hoverClass: 'hover:border-amber-200/45 hover:bg-amber-200/10',
       loading: loadingDocx,
       onClick: handleDocx,
       disabled: false,
@@ -112,8 +113,8 @@ export default function DownloadPage() {
       title: 'Download PDF',
       description: 'Print-ready layout for direct applications.',
       icon: FileDown,
-      iconColor: 'text-red-300',
-      hoverClass: 'hover:border-red-400/45 hover:bg-red-500/10',
+      iconColor: 'text-orange-200',
+      hoverClass: 'hover:border-orange-200/45 hover:bg-orange-200/10',
       loading: loadingPdf,
       onClick: handlePdf,
       disabled: false,
@@ -125,8 +126,8 @@ export default function DownloadPage() {
         ? `Sent to ${user.email}`
         : `Send both files to ${user.email || 'your account email'}`,
       icon: emailSent ? CheckCircle2 : Mail,
-      iconColor: 'text-emerald-300',
-      hoverClass: 'hover:border-emerald-400/45 hover:bg-emerald-500/10',
+      iconColor: 'text-teal-200',
+      hoverClass: 'hover:border-teal-300/45 hover:bg-teal-300/10',
       loading: loadingEmail,
       onClick: handleEmail,
       disabled: emailSent,
@@ -154,16 +155,19 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              clearSession();
-              navigate('/login');
-            }}
-            className="btn-ghost flex items-center gap-2 px-3 py-2"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <button
+              onClick={() => {
+                clearSession();
+                navigate('/login');
+              }}
+              className="btn-ghost flex items-center gap-2 px-3 py-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -189,7 +193,7 @@ export default function DownloadPage() {
                     id={action.id}
                     onClick={action.onClick}
                     disabled={action.loading || action.disabled}
-                    className={`group flex w-full items-center gap-4 rounded-2xl border border-dark-700/70 bg-dark-900/65 p-4 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${action.hoverClass}`}
+                    className={`group flex w-full items-center gap-4 rounded-2xl border border-dark-700/70 bg-dark-900/65 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${action.hoverClass}`}
                   >
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-dark-600/70 bg-dark-800/80">
                       {action.loading ? (

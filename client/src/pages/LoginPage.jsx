@@ -62,8 +62,8 @@ export default function LoginPage() {
       <div className="page-wrap py-8 sm:py-12">
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <section className="panel-card-strong relative overflow-hidden p-6 sm:p-10">
-            <div className="pointer-events-none absolute -left-20 -top-20 h-52 w-52 rounded-full bg-cyan-400/20 blur-3xl" />
-            <div className="pointer-events-none absolute -right-24 bottom-4 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute -left-20 -top-20 h-52 w-52 rounded-full bg-orange-300/20 blur-3xl" />
+            <div className="pointer-events-none absolute -right-24 bottom-4 h-64 w-64 rounded-full bg-teal-300/20 blur-3xl" />
 
             <div className="relative z-10">
               <div className="mb-8 flex items-center gap-3">
@@ -71,8 +71,8 @@ export default function LoginPage() {
                   <Sparkles className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Career Workspace</p>
-                  <h1 className="font-display text-2xl font-bold gradient-text sm:text-3xl">AI Resume Builder</h1>
+                  <p className="text-xs uppercase tracking-[0.2em] text-orange-200">Career Workspace</p>
+                  <h1 className="font-display text-2xl font-bold gradient-text sm:text-3xl">RoleReady</h1>
                 </div>
               </div>
 
@@ -84,14 +84,16 @@ export default function LoginPage() {
                 versions for every application.
               </p>
 
-              <div className="mt-8 space-y-4">
+              <div className="ambient-divider my-8" />
+
+              <div className="space-y-4">
                 {FEATURE_LIST.map(({ icon: Icon, title, desc }) => (
                   <article
                     key={title}
-                    className="flex items-start gap-3 rounded-2xl border border-dark-700/70 bg-dark-900/45 p-4"
+                    className="flex items-start gap-3 rounded-2xl border border-dark-700/70 bg-dark-900/45 p-4 transition-transform duration-300 hover:-translate-y-1"
                   >
-                    <div className="mt-0.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-2">
-                      <Icon className="h-4 w-4 text-cyan-300" />
+                    <div className="mt-0.5 rounded-xl border border-orange-200/40 bg-orange-200/10 p-2">
+                      <Icon className="h-4 w-4 text-orange-200" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-dark-50">{title}</h3>
@@ -175,7 +177,7 @@ export default function LoginPage() {
                 id="auth-submit-btn"
                 type="submit"
                 disabled={loading}
-                className="btn-primary mt-3 flex w-full items-center justify-center gap-2 py-3"
+                className="btn-primary mt-3 flex w-full items-center justify-center gap-2 py-3 shadow-[0_16px_28px_-16px_rgba(251,146,60,0.8)]"
               >
                 {loading ? (
                   <>

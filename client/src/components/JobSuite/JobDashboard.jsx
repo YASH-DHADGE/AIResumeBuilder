@@ -10,24 +10,20 @@ export default function JobDashboard({ resume }) {
   const { analysisStatus } = useJobAnalysis();
   const [activeTab, setActiveTab] = useState('ats'); // ats, enhance, cover
 
-  // Safe checks
-  const isReady = analysisStatus === 'complete';
-  const showContent = analysisStatus !== 'idle';
-
   return (
-    <div className="flex flex-col h-full animate-slide-up mb-12">
+    <div className="mb-12 flex h-full flex-col animate-slide-up">
       <JobInputHub resumeData={resume?.sections} />
 
-      <div className="rounded-xl border border-dark-700/70 bg-dark-900/50 p-5 shadow-lg flex-1 flex flex-col min-h-[500px]">
+      <div className="panel-card flex min-h-[500px] flex-1 flex-col rounded-[1.5rem] p-5">
         
         {/* Tabs */}
-        <div className="flex w-full items-center gap-2 border-b border-dark-700 pb-4 mb-5 overflow-x-auto">
+        <div className="mb-5 flex w-full items-center gap-2 overflow-x-auto border-b border-dark-700 pb-4">
           <button
             onClick={() => setActiveTab('ats')}
-            className={`flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all ${
               activeTab === 'ats' 
-              ? 'bg-dark-800 text-cyan-400' 
-              : 'text-dark-400 hover:text-dark-200 hover:bg-dark-800/50'
+              ? 'bg-orange-200/10 text-orange-100' 
+              : 'text-dark-400 hover:bg-dark-800/50 hover:text-dark-200'
             }`}
           >
             <BarChart3 className="h-4 w-4" />
@@ -35,10 +31,10 @@ export default function JobDashboard({ resume }) {
           </button>
           <button
             onClick={() => setActiveTab('enhance')}
-            className={`flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all ${
               activeTab === 'enhance' 
-              ? 'bg-dark-800 text-cyan-400' 
-              : 'text-dark-400 hover:text-dark-200 hover:bg-dark-800/50'
+              ? 'bg-orange-200/10 text-orange-100' 
+              : 'text-dark-400 hover:bg-dark-800/50 hover:text-dark-200'
             }`}
           >
             <Sparkles className="h-4 w-4" />
@@ -46,10 +42,10 @@ export default function JobDashboard({ resume }) {
           </button>
           <button
             onClick={() => setActiveTab('cover')}
-            className={`flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all ${
               activeTab === 'cover' 
-              ? 'bg-dark-800 text-cyan-400' 
-              : 'text-dark-400 hover:text-dark-200 hover:bg-dark-800/50'
+              ? 'bg-orange-200/10 text-orange-100' 
+              : 'text-dark-400 hover:bg-dark-800/50 hover:text-dark-200'
             }`}
           >
             <Mail className="h-4 w-4" />

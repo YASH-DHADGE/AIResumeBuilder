@@ -1,4 +1,4 @@
-# AI Resume Builder 🚀
+# RoleReady 🚀
 
 A full-stack, AI-powered resume builder that parses resumes, matches skills against job descriptions, and exports optimized resumes — all with a Chrome extension for LinkedIn integration.
 

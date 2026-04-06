@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import ResumeEditor from '../components/ResumeEditor';
+import ThemeToggle from '../components/ThemeToggle';
 import {
   clearSession,
   getAuthToken,
@@ -133,6 +134,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
           <button
             onClick={() => {
               clearSession();
@@ -143,20 +146,21 @@ export default function ProfilePage() {
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Sign Out</span>
           </button>
+          </div>
         </div>
       </header>
 
       <main className="page-wrap py-8 animate-fade-in">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <section className="panel-card-strong overflow-hidden">
-            <div className="border-b border-dark-700/70 bg-gradient-to-r from-blue-500/30 to-cyan-400/20 px-6 py-6">
+            <div className="border-b border-dark-700/70 bg-gradient-to-r from-orange-300/25 via-amber-300/15 to-teal-300/20 px-6 py-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-400/10 text-2xl font-bold text-cyan-200">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-orange-200/40 bg-orange-200/10 text-2xl font-bold text-orange-100">
                     {userInitial}
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-[0.16em] text-cyan-200">Global profile</p>
+                    <p className="text-xs uppercase tracking-[0.16em] text-orange-100">Global profile</p>
                     <h1 className="font-display text-2xl font-semibold text-dark-50">{displayName}</h1>
                     <p className="mt-1 flex items-center gap-1.5 text-sm text-dark-300">
                       <Mail className="h-4 w-4" />
@@ -181,7 +185,7 @@ export default function ProfilePage() {
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="btn-primary flex items-center gap-2"
+                  className="btn-primary flex items-center gap-2 shadow-[0_16px_28px_-16px_rgba(251,146,60,0.85)]"
                 >
                   <PencilLine className="h-4 w-4" />
                   Edit profile sections
@@ -210,8 +214,8 @@ export default function ProfilePage() {
 
           <section className="panel-card p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="rounded-xl border border-violet-400/30 bg-violet-400/10 p-2.5">
-                <Code2 className="h-5 w-5 text-violet-300" />
+              <div className="rounded-xl border border-teal-300/30 bg-teal-300/10 p-2.5">
+                <Code2 className="h-5 w-5 text-teal-200" />
               </div>
               <div>
                 <h2 className="font-display text-xl font-semibold text-dark-50">Skill inventory</h2>

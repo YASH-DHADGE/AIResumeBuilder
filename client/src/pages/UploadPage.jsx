@@ -14,6 +14,7 @@ import {
   Upload,
 } from 'lucide-react';
 import JobDashboard from '../components/JobSuite/JobDashboard';
+import ThemeToggle from '../components/ThemeToggle';
 import { JobAnalysisProvider } from '../context/JobAnalysisContext';
 import {
   clearSession,
@@ -107,11 +108,12 @@ export default function UploadPage() {
               </div>
               <div className="text-left">
                 <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Workspace</p>
-                <p className="font-display text-base font-semibold text-dark-50">AI Resume Builder</p>
+                <p className="font-display text-base font-semibold text-dark-50">RoleReady</p>
               </div>
             </button>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
               <button
                 id="profile-btn"
                 onClick={() => navigate('/profile')}
@@ -140,9 +142,10 @@ export default function UploadPage() {
         <main className="page-wrap py-8 space-y-12">
           {/* Step 1: Upload */}
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <section className="panel-card-strong p-6 sm:p-8">
+            <section className="panel-card-strong relative overflow-hidden p-6 sm:p-8">
+              <div className="pointer-events-none absolute -right-20 -top-16 h-48 w-48 rounded-full bg-orange-300/15 blur-3xl" />
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500 text-dark-950 font-bold text-sm">1</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-300 text-dark-950 font-bold text-sm">1</span>
                 <span className="section-kicker">Upload Source</span>
               </div>
               <h1 className="font-display text-3xl font-semibold text-dark-50 sm:text-4xl">
@@ -156,10 +159,10 @@ export default function UploadPage() {
                 {...getRootProps()}
                 className={`mt-7 cursor-pointer rounded-3xl border border-dashed p-8 text-center transition-all duration-300
                   ${isDragActive
-                    ? 'border-cyan-300 bg-cyan-400/10'
+                    ? 'border-orange-200 bg-orange-200/10'
                     : file
                       ? 'border-emerald-400/60 bg-emerald-500/10'
-                      : 'border-dark-600/80 bg-dark-900/60 hover:border-cyan-300/50 hover:bg-cyan-400/5'
+                      : 'border-dark-600/80 bg-dark-900/60 hover:border-orange-200/60 hover:bg-orange-200/5'
                   }`}
               >
                 <input {...getInputProps()} />
@@ -170,7 +173,7 @@ export default function UploadPage() {
                   {file ? (
                     <p className="max-w-full truncate text-sm text-dark-200">{file.name}</p>
                   ) : (
-                    <p className="text-lg font-semibold text-dark-100 italic">Drop PDF or DOCX</p>
+                    <p className="text-lg font-semibold text-dark-100">Drop PDF or DOCX</p>
                   )}
                 </div>
               </div>
@@ -179,7 +182,7 @@ export default function UploadPage() {
                 <button
                   onClick={handleUpload}
                   disabled={!file || uploading}
-                  className="btn-primary mt-6 flex w-full items-center justify-center gap-2 py-3 shadow-lg shadow-cyan-500/10"
+                  className="btn-primary mt-6 flex w-full items-center justify-center gap-2 py-3 shadow-[0_16px_28px_-14px_rgba(251,146,60,0.72)]"
                 >
                   {uploading ? (
                     <>Parsing Resume...</>
@@ -216,15 +219,15 @@ export default function UploadPage() {
                   <h2 className="font-display text-xl font-semibold text-dark-50 mb-4">Quick Start Guide</h2>
                   <ul className="space-y-4 text-sm text-dark-300">
                     <li className="flex gap-3">
-                      <span className="text-cyan-400 font-bold">01</span>
+                      <span className="text-orange-200 font-bold">01</span>
                       <span>Upload your PDF or DOCX file first.</span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="text-cyan-400 font-bold">02</span>
+                      <span className="text-orange-200 font-bold">02</span>
                       <span>Enter the job description in the panel below.</span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="text-cyan-400 font-bold">03</span>
+                      <span className="text-orange-200 font-bold">03</span>
                       <span>Generate ATS insights and a custom cover letter.</span>
                     </li>
                   </ul>
@@ -242,7 +245,7 @@ export default function UploadPage() {
           {/* Step 2: Job Matching (Intelligence Suite) */}
           <section className="animate-slide-up">
              <div className="flex items-center gap-3 mb-6">
-               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500 text-dark-950 font-bold text-sm">2</span>
+               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-300 text-dark-950 font-bold text-sm">2</span>
                <h2 className="font-display text-3xl font-semibold text-dark-50">Match Role Intelligence</h2>
              </div>
              <p className="text-dark-400 max-w-3xl mb-8">
@@ -256,7 +259,7 @@ export default function UploadPage() {
           </section>
 
           <footer className="pt-12 pb-8 border-t border-dark-800 text-center text-dark-500 text-sm">
-            <p>&copy; 2026 AI Resume Builder — Premium Intelligence Suite</p>
+            <p>&copy; 2026 RoleReady — Premium Intelligence Suite</p>
           </footer>
         </main>
       </div>

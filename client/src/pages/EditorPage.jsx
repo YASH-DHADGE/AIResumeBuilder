@@ -5,6 +5,7 @@ import ResumeEditor from '../components/ResumeEditor';
 import SkillsPanel from '../components/SkillsPanel';
 import ATSScoreCard from '../components/ATSScoreCard';
 import JobDashboard from '../components/JobSuite/JobDashboard';
+import ThemeToggle from '../components/ThemeToggle';
 import { JobAnalysisProvider } from '../context/JobAnalysisContext';
 import {
   ArrowLeft,
@@ -86,12 +87,13 @@ export default function EditorPage() {
                 <p className="truncate font-display text-base font-semibold text-dark-50">
                   {resume.sections?.personalInfo?.name || resume.originalFileName}
                 </p>
-                <p className="truncate text-xs text-dark-400">Editing as {userName}</p>
+                <p className="truncate text-xs text-dark-400">Workspace owner: {userName}</p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               id="save-nav-btn"
               onClick={() => saveNow(resume.sections)}
@@ -116,7 +118,7 @@ export default function EditorPage() {
             <button
               id="download-nav-btn"
               onClick={() => navigate(`/download/${resumeId}`)}
-              className="btn-primary flex items-center gap-2 px-3 py-2"
+              className="btn-primary flex items-center gap-2 px-3 py-2 shadow-[0_16px_28px_-16px_rgba(251,146,60,0.9)]"
             >
               <Download className="h-4 w-4" />
               <span className="hidden sm:inline">Export</span>
@@ -128,7 +130,7 @@ export default function EditorPage() {
       <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[1fr_380px] sm:px-6">
         <section className="space-y-4 animate-fade-in">
           {saving && (
-            <div className="pill border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
+            <div className="pill border-orange-200/30 bg-orange-200/10 text-orange-100">
               Saving your latest changes...
             </div>
           )}
